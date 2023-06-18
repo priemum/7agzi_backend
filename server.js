@@ -37,7 +37,7 @@ app.use(express.json({limit: "50mb"}));
 //routes middlewares
 readdirSync("./routes").map((r) => app.use("/api", require(`./routes/${r}`)));
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8050;
 
 // cron.schedule("0 */15 * * * *", scheduler);
 
