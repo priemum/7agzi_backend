@@ -15,7 +15,12 @@ const smsSchema = new mongoose.Schema(
 		},
 		user: {type: ObjectId, ref: "User"},
 
-		belongsTo: {type: ObjectId, ref: "User"},
+		belongsTo: {
+			type: ObjectId,
+			ref: "User",
+			default: "6488b37f8aeb64826f01317a",
+		},
+		smsPaid: {type: Boolean, default: false},
 	},
 	{timestamps: true}
 );

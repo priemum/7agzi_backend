@@ -16,13 +16,13 @@ const {
 	uploadByStylist,
 	removeByStylist,
 } = require("../controllers/cloudinary");
-const { userById } = require("../controllers/user");
+const {userById} = require("../controllers/user");
 router.post(
 	"/admin/uploadimages/:userId",
 	requireSignin,
 	isAuth,
 	isAdmin,
-	upload,
+	upload
 );
 
 router.post(
@@ -30,7 +30,7 @@ router.post(
 	requireSignin,
 	isAuth,
 	isEmployee,
-	uploadByStylist,
+	uploadByStylist
 );
 
 router.post(
@@ -38,7 +38,7 @@ router.post(
 	requireSignin,
 	isAuth,
 	isAdmin,
-	remove,
+	remove
 );
 
 router.post(
@@ -46,21 +46,25 @@ router.post(
 	requireSignin,
 	isAuth,
 	isEmployee,
-	removeByStylist,
+	removeByStylist
 );
 
 router.post(
 	"/admin/uploadimagesimagecomment/:userId",
 	requireSignin,
 	isAuth,
-	uploadCommentImage,
+	uploadCommentImage
 );
 router.post(
 	"/admin/removeimagecomment/:userId",
 	requireSignin,
 	isAuth,
-	removeCommentImage,
+	removeCommentImage
 );
+
+router.post("/add/agent/idupload", upload);
+
+router.post("/remove/agent/idupload", remove);
 
 router.param("userId", userById);
 

@@ -5,8 +5,8 @@ const mongoose = require("mongoose");
 const morgan = require("morgan");
 const cors = require("cors");
 const {readdirSync} = require("fs");
-// const cron = require("node-cron");
-// const {scheduler} = require("./SMSReminder");
+const cron = require("node-cron");
+const {scheduler} = require("./SMSReminder");
 
 require("dotenv").config();
 // app
@@ -39,7 +39,7 @@ readdirSync("./routes").map((r) => app.use("/api", require(`./routes/${r}`)));
 
 const port = process.env.PORT || 8050;
 
-// cron.schedule("0 */15 * * * *", scheduler);
+cron.schedule("0 */15 * * * *", scheduler);
 
 app.listen(port, () => {
 	console.log(`Server is running on port ${port}`);

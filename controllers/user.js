@@ -6,7 +6,7 @@ const {ScheduleOrder} = require("../models/scheduleOrder");
 exports.userById = (req, res, next, id) => {
 	User.findById(id)
 		.select(
-			"_id name email phone role user points activePoints likesUser activeUser createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid"
+			"_id name email phone role user points activePoints likesUser activeUser createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid activeAgent agentOtherData agentPaidPro storeType"
 		)
 		// .populate(
 		// 	"likesUser",
@@ -26,7 +26,7 @@ exports.userById = (req, res, next, id) => {
 exports.userByPhoneNumber = (req, res, next, phoneNumber) => {
 	User.find({email: phoneNumber})
 		.select(
-			"_id name email phone role user points activePoints likesUser activeUser createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid"
+			"_id name email phone role user points activePoints likesUser activeUser createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid activeAgent agentOtherData agentPaidPro storeType"
 		)
 
 		.exec((err, user) => {
@@ -44,7 +44,7 @@ exports.userByPhoneNumber = (req, res, next, phoneNumber) => {
 exports.updatedUserId = (req, res, next, id) => {
 	User.findById(id)
 		.select(
-			"_id name email role user points activePoints likesUser activeUser createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid"
+			"_id name email role user points activePoints likesUser activeUser createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid activeAgent agentOtherData agentPaidPro storeType"
 		)
 		// .populate(
 		// 	"likesUser",
@@ -89,7 +89,7 @@ exports.remove = (req, res) => {
 exports.allUsersList = (req, res) => {
 	User.find()
 		.select(
-			"_id name email role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid"
+			"_id name email role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid activeAgent agentOtherData agentPaidPro storeType"
 		)
 		// .populate(
 		// 	"likesUser",
@@ -398,7 +398,7 @@ exports.updateByAdminUpdated = (req, res) => {
 exports.allUsersListBoss = (req, res) => {
 	User.find({role: {$ne: 0}})
 		.select(
-			"_id name email phone role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid"
+			"_id name email phone role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid activeAgent agentOtherData agentPaidPro storeType"
 		)
 		// .populate(
 		//  "likesUser",
@@ -417,7 +417,7 @@ exports.allUsersListBoss = (req, res) => {
 exports.updateByBoss = (req, res) => {
 	// console.log("UPDATE USER - req.user", req.user, "UPDATE DATA", req.body);
 
-	console.log(req.body, "req.body");
+	console.log(req.body, "updateByBoss");
 
 	const {
 		name,
@@ -432,6 +432,8 @@ exports.updateByBoss = (req, res) => {
 		paymentTo,
 		subscriptionId,
 		userId,
+		agentPaid,
+		agentPaidPro,
 	} = req.body;
 
 	User.findOne({_id: userId}, (err, user) => {
@@ -494,6 +496,22 @@ exports.updateByBoss = (req, res) => {
 			user.platFormShareToken = platFormShareToken;
 		}
 
+		if (agentPaid) {
+			user.agentPaid = agentPaid;
+		}
+
+		if (!agentPaid) {
+			user.agentPaid = agentPaid;
+		}
+
+		if (agentPaidPro) {
+			user.agentPaidPro = agentPaidPro;
+		}
+
+		if (!agentPaidPro) {
+			user.agentPaidPro = agentPaidPro;
+		}
+
 		user.save((err, updatedUser) => {
 			if (err) {
 				console.log("USER UPDATE ERROR", err);
@@ -511,7 +529,7 @@ exports.updateByBoss = (req, res) => {
 exports.allUsersListGeneral = (req, res) => {
 	User.find({role: 2000})
 		.select(
-			"_id name email role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid"
+			"_id name email role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid activeAgent agentOtherData agentPaidPro storeType"
 		)
 		// .populate(
 		// 	"likesUser",
@@ -563,5 +581,89 @@ exports.getDistinctValues = (req, res) => {
 			});
 		}
 		res.json(results);
+	});
+};
+
+exports.updateAgent = (req, res) => {
+	const {
+		name,
+		password,
+		email,
+		phone,
+		agentOtherData,
+		activeAgent,
+		agentPaid,
+		agentPaidPro,
+	} = req.body;
+
+	User.findOne({_id: req.params.agentId}, (err, user) => {
+		if (err || !user) {
+			return res.status(400).json({
+				error: "User not found",
+			});
+		}
+		if (!name) {
+			return res.status(400).json({
+				error: "Name is required",
+			});
+		} else {
+			user.name = name;
+		}
+
+		if (!email) {
+			return res.status(400).json({
+				error: "email is required",
+			});
+		} else {
+			user.email = email;
+		}
+		if (!phone) {
+			return res.status(400).json({
+				error: "phone is required",
+			});
+		} else {
+			user.phone = phone;
+		}
+
+		if (!agentOtherData.agentAddress) {
+			return res.status(400).json({
+				error: "agentOtherData is required",
+			});
+		} else {
+			user.agentOtherData = agentOtherData;
+		}
+		if (!activeAgent) {
+			return res.status(400).json({
+				error: "activeAgent is required",
+			});
+		} else {
+			user.activeAgent = activeAgent;
+		}
+
+		if (password) {
+			if (password.length < 6) {
+				return res.status(400).json({
+					error: "Password should be min 6 characters long",
+				});
+			} else {
+				user.password = password;
+			}
+		}
+
+		user.agentPaid = agentPaid;
+		user.agentPaidPro = agentPaidPro;
+
+		user.save((err, updatedUser) => {
+			if (err) {
+				console.log("USER UPDATE ERROR", err);
+				return res.status(400).json({
+					error: "User update failed",
+				});
+			}
+			updatedUser.hashed_password = undefined;
+			updatedUser.salt = undefined;
+			console.log(updatedUser, "updeteUser");
+			res.json(updatedUser);
+		});
 	});
 };

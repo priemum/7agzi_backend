@@ -8,7 +8,7 @@ const orderStatusSMS = require("twilio")(
 );
 const SMS = require("./models/sms");
 
-const BarbershopName = "Barber Shop";
+const BarbershopName = "Our Store";
 const BarbershopWebsite = "https://barbershopdemo.infinite-apps.com";
 const userDashboardLink = "https://barbershopdemo.infinite-apps.com/dashboard";
 const contactusPageLink = "https://barbershopdemo.infinite-apps.com/contact";
@@ -65,8 +65,9 @@ exports.scheduler = (req, res) => {
 							}
 							const smsData = {
 								user: i.user._id,
-								phone: `+1${i.phone}`,
+								phone: `+2${i.phone}`,
 								text: `Hi ${i.scheduledByUserName} - \n This is a friendly reminder... \n Your appointment with ${i.employees[0].employeeName} is today at ${i.scheduledTime}, Please check your dashboard ${userDashboardLink} in case you would like to make any changes. \n Thank you for choosing ${BarbershopName}.`,
+								belongsTo: i.belongsTo,
 							};
 							const sms = new SMS(smsData);
 
@@ -78,42 +79,22 @@ exports.scheduler = (req, res) => {
 								}
 							});
 
-							// orderStatusSMS.messages
-							// 	.create({
-							// 		body: smsData.text,
-							// 		from: "+18038100432",
-							// 		to: smsData.phone,
-							// 	})
-							// 	.then((message) =>
-							// 		console.log(
-							// 			`Your message was successfully sent to ${smsData.phone}`
-							// 		)
-							// 	)
-							// 	.catch((err) => console.log(err));
-
 							//
 							//
 							//Whats App Message
 							orderStatusSMS.messages
 								.create({
 									from: "whatsapp:+19512591528",
-									body: {
-										template: {
-											name: "appointment_update",
-											data: [
-												i.scheduledByUserName,
-												i.employees[0].employeeName,
-												i.scheduledTime,
-												userDashboardLink,
-												BarbershopName,
-											],
-										},
-									},
-									to: `whatsapp:+19099914386`,
+									body: `Hi ${i.scheduledByUserName} - 
+			This is a friendly reminder... 
+			Your appointment with ${i.employees[0].employeeName} is today at ${i.scheduledTime}. 
+			Please check your dashboard ${userDashboardLink} in case you would like to make any changes. 
+			Thank you for choosing ${BarbershopName}.`,
+									to: `whatsapp:+2${smsData.phone}`,
 								})
 								.then((message) =>
 									console.log(
-										`Your message was successfully sent to ${smsData.phone}`
+										`Your message was successfully sent to ${user.phone}`
 									)
 								)
 								.catch((err) => console.log(err));

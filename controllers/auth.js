@@ -4,9 +4,14 @@ const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const _ = require("lodash");
 const expressJwt = require("express-jwt");
+require("dotenv").config();
 const {OAuth2Client} = require("google-auth-library");
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const orderStatusSMS = require("twilio")(
+	process.env.TWILIO_ACCOUNT_SID,
+	process.env.TWILIO_AUTH_TOKEN
+);
 
 const BarbershopName = "Hair Salon";
 const BarbershopWebsite = "http://hairsalondemo.infinite-apps.com/";
@@ -66,6 +71,24 @@ exports.signup = async (req, res) => {
 		res.json({
 			user,
 		});
+
+		//
+		//
+		//Whats App Message
+		orderStatusSMS.messages
+			.create({
+				from: "whatsapp:+19512591528",
+				body: `Hi ${user.name} - Your profile is under review now, Our team will let you know once your account is activated. This process takes between 2 to 3 days.
+				Thank you!`,
+				to: `whatsapp:+2${user.phone}`,
+			})
+			.then((message) =>
+				console.log(`Your message was successfully sent to ${user.phone}`)
+			)
+			.catch((err) => console.log(err));
+		//End of Whats App Message
+		//
+		//
 
 		if (email.includes("@")) {
 			const welcomingEmail = {
@@ -154,6 +177,7 @@ exports.signin = (req, res) => {
 			subscriptionToken,
 			subscriptionId,
 			agent,
+			paidAgent,
 		} = user;
 		return res.json({
 			token,
@@ -179,6 +203,7 @@ exports.signin = (req, res) => {
 				subscriptionToken,
 				subscriptionId,
 				agent,
+				paidAgent,
 			},
 		});
 	});
@@ -226,6 +251,16 @@ exports.isAdmin = (req, res, next) => {
 
 exports.isBoss = (req, res, next) => {
 	if (req.profile.role !== 10000) {
+		return res.status(403).json({
+			error: "Boss resource! access denied",
+		});
+	}
+
+	next();
+};
+
+exports.isAgent = (req, res, next) => {
+	if (req.profile.role !== 2000) {
 		return res.status(403).json({
 			error: "Boss resource! access denied",
 		});

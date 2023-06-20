@@ -77,43 +77,37 @@ exports.create = (req, res) => {
 		});
 
 		//Sending Message
-		orderStatusSMS.messages
-			.create({
-				body: smsData.text,
-				from: "+18038100432",
-				to: smsData.phone,
-			})
-			.then((message) =>
-				console.log(`Your message was successfully sent to ${smsData.phone}`)
-			)
-			.catch((err) => console.log(err));
-		//End of Sendting Message
-
-		//
-		//
-		//Whats App Message
 		// orderStatusSMS.messages
 		// 	.create({
-		// 		from: "whatsapp:+19512591528",
-		// 		body: {
-		// 			template: {
-		// 				name: "thankyou_message2",
-		// 				data: [
-		// 					order.scheduledByUserName,
-		// 					order.scheduledTime,
-		// 					new Date(order.scheduledDate).toLocaleDateString(),
-		// 					userDashboardLink,
-		// 					contactusPageLink,
-		// 					BarbershopName,
-		// 				],
-		// 			},
-		// 		},
-		// 		to: `whatsapp:+19099914386`,
+		// 		body: smsData.text,
+		// 		from: "+18038100432",
+		// 		to: smsData.phone,
 		// 	})
 		// 	.then((message) =>
 		// 		console.log(`Your message was successfully sent to ${smsData.phone}`)
 		// 	)
 		// 	.catch((err) => console.log(err));
+		//End of Sendting Message
+
+		//
+		//
+		//Whats App Message
+		orderStatusSMS.messages
+			.create({
+				from: "whatsapp:+19512591528",
+				body: `Hi ${
+					order.scheduledByUserName
+				} - Your appointment was scheduled at ${
+					order.scheduledTime
+				} on ${new Date(
+					order.scheduledDate
+				).toLocaleDateString()}. Please check your dashboard or call us at ${contactusPageLink} in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
+				to: `whatsapp:+2${smsData.phone}`,
+			})
+			.then((message) =>
+				console.log(`Your message was successfully sent to ${user.phone}`)
+			)
+			.catch((err) => console.log(err));
 		//End of Whats App Message
 		//
 		//
@@ -126,54 +120,6 @@ exports.create = (req, res) => {
 		// console.log(order.user.email.includes("@"), "Ahowan");
 
 		res.json(data);
-
-		if (order.user.email.includes("@")) {
-			const emailData2 = {
-				to: order.user.email,
-				from: `${fromEmail}`,
-				subject: `Appointment Confirmation`,
-				html: `
-				<html>
-    <head>
-      <title></title>
-					
-    </head>
-    <body style=margin-left:20px;margin-right:20px;margin-top:50px;background:#f2f2f2;border-radius:20px;padding:50px;>
-     <div >
-					  <div >Hi ${order.scheduledByUserName},</div>
-					   <br />
-					   <div>Thank you for choosing <a href=${BarbershopWebsite}> ${BarbershopName}</a>.</div>
-					   <h3>
-						Scheduleing Details:
-					   </h3>
-						<strong>Chosen Service:</strong> ${order.service} <br />
-						<strong>Appointment Date:</strong> ${order.scheduledDate}<br />
-						<strong>Appointment Time:</strong> ${order.scheduledTime}<br />
-						<br />
-						<h3>Amount: $${order.amount}</h3>
-						<p>Please <a href=${BarbershopWebsite}>login to your dashboard</a> to download your invoice or to re-schedule if needed.</p>
-						 <br />
-	
-						 Kind and Best Regards,  <br />
-						 ${BarbershopName} support team <br />
-						 Contact Email: ${supportEmail} <br />
-						 Phone#: ${phoneNumber1} <br />
-						 Landline#: ${phoneNumber2} <br />
-						 Address:  ${shopAddress}  <br />
-						 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
-						 <br />
-						 <p>
-						 <strong>${BarbershopName}</strong>
-						  </p>
-						  </div>
-    </body>
-  </html>
-						`,
-			};
-			sgMail.send(emailData2);
-		} else {
-			console.log("No Email Was included");
-		}
 	});
 };
 
@@ -284,7 +230,7 @@ exports.updateOrderStatus = (req, res, next) => {
 		) {
 			const smsData = {
 				user: req.order.user._id,
-				phone: `+1${req.order.phone}`,
+				phone: `+2${req.order.phone}`,
 				text: `Hi ${req.order.scheduledByUserName} - \nThank you for choosing ${BarbershopName}, Your payment was successfully received.\nWe are looking forward to seeing you again\n ${BarbershopName}`,
 				belongsTo: req.order.belongsTo,
 			};
@@ -292,7 +238,7 @@ exports.updateOrderStatus = (req, res, next) => {
 		} else {
 			const smsData = {
 				user: req.order.user._id,
-				phone: `+1${req.order.phone}`,
+				phone: `+2${req.order.phone}`,
 				text: `Hi ${req.order.scheduledByUserName} - \nYour Appointment Status was changed, Please contact us or call in case you don't know about those changes. \n Thank you for choosing ${BarbershopName}`,
 				belongsTo: req.order.belongsTo,
 			};
@@ -518,19 +464,6 @@ exports.updateAppointment = (req, res) => {
 				}
 				console.log(data, "sms saved in the data base");
 			});
-
-			//Sending Message
-			orderStatusSMS.messages
-				.create({
-					body: smsData.text,
-					from: "+18038100432",
-					to: smsData.phone,
-				})
-				.then((message) =>
-					console.log(`Your message was successfully sent to ${smsData.phone}`)
-				)
-				.catch((err) => console.log(err));
-			//End Sending Message
 
 			//
 			//

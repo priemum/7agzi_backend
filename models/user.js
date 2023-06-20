@@ -142,11 +142,24 @@ const userSchema = new mongoose.Schema(
 			default: "Not Added",
 		},
 
+		agentOtherData: {
+			type: Object,
+			default: {phone2: "No Agent"},
+		},
+
 		agent: {
 			type: Object,
 			default: {name: "No Agent"},
 		},
 		agentPaid: {
+			type: Boolean,
+			default: false,
+		},
+		agentPaidPro: {
+			type: Boolean,
+			default: false,
+		},
+		activeAgent: {
 			type: Boolean,
 			default: false,
 		},
