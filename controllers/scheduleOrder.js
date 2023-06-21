@@ -95,7 +95,7 @@ exports.create = (req, res) => {
 		orderStatusSMS.messages
 			.create({
 				from: "whatsapp:+19512591528",
-				body: "Dummy body text for Twilio validation",
+				body: "Hi {{1}} - Your appointment was scheduled at {{2}} on {{3}}. Please check your dashboard or call us at {{4}} in case you would like to make any changes. Thank you for choosing {{5}}.",
 				template: "appointment_confirmation",
 				"appointment_confirmation.text": `Hi {{1}} - Your appointment was scheduled at {{2}} on {{3}}. Please check your dashboard or call us at {{4}} in case you would like to make any changes. Thank you for choosing {{5}}.`,
 				"appointment_confirmation.{{1}}": order.scheduledByUserName,
