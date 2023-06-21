@@ -82,14 +82,16 @@ exports.scheduler = (req, res) => {
 							//
 							//
 							//Whats App Message
+							var fullNameArray = i.scheduledByUserName.split(" ");
+							var firstName = fullNameArray[0].trim();
 							orderStatusSMS.messages
 								.create({
 									from: "whatsapp:+19512591528",
-									body: `Hi ${i.scheduledByUserName} - 
-			This is a friendly reminder... 
-			Your appointment with ${i.employees[0].employeeName} is today at ${i.scheduledTime}. 
-			Please check your dashboard ${userDashboardLink} in case you would like to make any changes. 
-			Thank you for choosing ${BarbershopName}.`,
+									body: `Hi ${firstName} - 
+											This is a friendly reminder... 
+											Your appointment with ${i.employees[0].employeeName} is today at ${i.scheduledTime}. 
+											Please check your dashboard ${userDashboardLink} in case you would like to make any changes. 
+											Thank you for choosing ${BarbershopName}.`,
 									to: `whatsapp:+2${smsData.phone}`,
 								})
 								.then((message) =>

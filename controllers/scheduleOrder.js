@@ -92,19 +92,19 @@ exports.create = (req, res) => {
 		//
 		//
 		//Whats App Message
+		var fullNameArray = order.scheduledByUserName.split(" ");
+		var firstName = fullNameArray[0].trim();
 		orderStatusSMS.messages
 			.create({
 				from: "whatsapp:+19512591528",
-				body: `Hi ${
-					order.scheduledByUserName
-				} - Your appointment was scheduled at (${
+				body: `Hi ${firstName} - Your appointment was scheduled at (${
 					order.scheduledTime
 				}) on ${new Date(
 					order.scheduledDate
 				).toLocaleDateString()}. Please check your dashboard or call us at +19512591528 in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
 				template: "appointment_confirmation",
 				appointment_confirmation: {
-					1: order.scheduledByUserName,
+					1: order.firstName,
 					2: order.scheduledTime,
 					3: new Date(order.scheduledDate).toLocaleDateString(),
 					4: "+19512591528",
@@ -477,27 +477,30 @@ exports.updateAppointment = (req, res) => {
 			//
 			//
 			//Whats App Message
-			// orderStatusSMS.messages
-			// 	.create({
-			// 		from: "whatsapp:+19512591528",
-			// 		body: {
-			// 			template: {
-			// 				name: "appointment_update",
-			// 				data: [
-			// 					orderDetails.scheduledByUserName,
-			// 					orderDetails.employees[0].employeeName,
-			// 					process.env.CLIENT_URL + "/dashboard",
-			// 					process.env.CLIENT_URL + "/contact",
-			// 					BarbershopName,
-			// 				],
-			// 			},
-			// 		},
-			// 		to: `whatsapp:+19099914386`,
-			// 	})
-			// 	.then((message) =>
-			// 		console.log(`Your message was successfully sent to ${smsData.phone}`)
-			// 	)
-			// 	.catch((err) => console.log(err));
+			var fullNameArray = order.scheduledByUserName.split(" ");
+			var firstName = fullNameArray[0].trim();
+			orderStatusSMS.messages
+				.create({
+					from: "whatsapp:+19512591528",
+					body: `Hi ${firstName} - 
+				Your appointment with ${order.employees[0].employeeName} was updated. 
+				Please check your dashboard ${userDashboardLink} or call us 9099914386. 
+				Thank you for choosing ${BarbershopName}.`,
+					template: "appointment_confirmation",
+					appointment_confirmation: {
+						1: order.firstName,
+						2: order.scheduledTime,
+						3: new Date(order.scheduledDate).toLocaleDateString(),
+						4: "+19512591528",
+						5: BarbershopName,
+					},
+					to: `whatsapp:${smsData.phone}`,
+				})
+				.then((message) =>
+					console.log(`Your message was successfully sent to ${order.phone}`)
+				)
+				.catch((err) => console.log(err));
+
 			//End of Whats App Message
 			//
 			//
@@ -659,43 +662,33 @@ exports.updateAppointmentEmployee = (req, res) => {
 				console.log(data, "sms saved in the data base");
 			});
 
-			//Sending Message
-			orderStatusSMS.messages
-				.create({
-					body: smsData.text,
-					from: "+18038100432",
-					to: smsData.phone,
-				})
-				.then((message) =>
-					console.log(`Your message was successfully sent to ${smsData.phone}`)
-				)
-				.catch((err) => console.log(err));
-			//End Sending Message
-
 			//
 			//
 			//Whats App Message
-			// orderStatusSMS.messages
-			// 	.create({
-			// 		from: "whatsapp:+19512591528",
-			// 		body: {
-			// 			template: {
-			// 				name: "appointment_update",
-			// 				data: [
-			// 					orderDetails.scheduledByUserName,
-			// 					orderDetails.employees[0].employeeName,
-			// 					process.env.CLIENT_URL + "/dashboard",
-			// 					process.env.CLIENT_URL + "/contact",
-			// 					BarbershopName,
-			// 				],
-			// 			},
-			// 		},
-			// 		to: `whatsapp:+19099914386`,
-			// 	})
-			// 	.then((message) =>
-			// 		console.log(`Your message was successfully sent to ${smsData.phone}`)
-			// 	)
-			// 	.catch((err) => console.log(err));
+			var fullNameArray = order.scheduledByUserName.split(" ");
+			var firstName = fullNameArray[0].trim();
+			orderStatusSMS.messages
+				.create({
+					from: "whatsapp:+19512591528",
+					body: `Hi ${firstName} - 
+				Your appointment with ${order.employees[0].employeeName} was updated. 
+				Please check your dashboard ${userDashboardLink} or call us 9099914386. 
+				Thank you for choosing ${BarbershopName}.`,
+					template: "appointment_confirmation",
+					appointment_confirmation: {
+						1: order.firstName,
+						2: order.employees[0].employeeName,
+						3: userDashboardLink,
+						4: "+19099914386",
+						5: BarbershopName,
+					},
+					to: `whatsapp:${smsData.phone}`,
+				})
+				.then((message) =>
+					console.log(`Your message was successfully sent to ${order.phone}`)
+				)
+				.catch((err) => console.log(err));
+
 			//End of Whats App Message
 			//
 			//
@@ -860,43 +853,33 @@ exports.updateAppointmentUser = (req, res) => {
 			console.log(data, "sms saved in the data base");
 		});
 
-		//Sending Message
-		orderStatusSMS.messages
-			.create({
-				body: smsData.text,
-				from: "+18038100432",
-				to: smsData.phone,
-			})
-			.then((message) =>
-				console.log(`Your message was successfully sent to ${smsData.phone}`)
-			)
-			.catch((err) => console.log(err));
-		//End Sending Message
-
 		//
 		//
 		//Whats App Message
-		// orderStatusSMS.messages
-		// 	.create({
-		// 		from: "whatsapp:+19512591528",
-		// 		body: {
-		// 			template: {
-		// 				name: "appointment_update",
-		// 				data: [
-		// 					orderDetails.scheduledByUserName,
-		// 					orderDetails.employees[0].employeeName,
-		// 					process.env.CLIENT_URL + "/dashboard",
-		// 					process.env.CLIENT_URL + "/contact",
-		// 					BarbershopName,
-		// 				],
-		// 			},
-		// 		},
-		// 		to: `whatsapp:+19099914386`,
-		// 	})
-		// 	.then((message) =>
-		// 		console.log(`Your message was successfully sent to ${smsData.phone}`)
-		// 	)
-		// 	.catch((err) => console.log(err));
+		var fullNameArray = order.scheduledByUserName.split(" ");
+		var firstName = fullNameArray[0].trim();
+		orderStatusSMS.messages
+			.create({
+				from: "whatsapp:+19512591528",
+				body: `Hi ${firstName} - 
+				Your appointment with ${order.employees[0].employeeName} was updated. 
+				Please check your dashboard ${userDashboardLink} or call us 9099914386. 
+				Thank you for choosing ${BarbershopName}.`,
+				template: "appointment_confirmation",
+				appointment_confirmation: {
+					1: order.firstName,
+					2: order.employees[0].employeeName,
+					3: userDashboardLink,
+					4: "+19099914386",
+					5: BarbershopName,
+				},
+				to: `whatsapp:${smsData.phone}`,
+			})
+			.then((message) =>
+				console.log(`Your message was successfully sent to ${order.phone}`)
+			)
+			.catch((err) => console.log(err));
+
 		//End of Whats App Message
 		//
 		//
