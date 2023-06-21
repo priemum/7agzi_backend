@@ -44,7 +44,7 @@ exports.scheduleOrderById = (req, res, next, id) => {
 };
 
 exports.create = (req, res) => {
-	// console.log("CREATE ORDER: ", req.body);
+	console.log("CREATE ORDER: ", req.body.order);
 	req.body.order.user = req.profile;
 	const order = new ScheduleOrder(req.body.order);
 	const smsData = {
@@ -105,7 +105,7 @@ exports.create = (req, res) => {
 				to: `whatsapp:${smsData.phone}`,
 			})
 			.then((message) =>
-				console.log(`Your message was successfully sent to ${user.phone}`)
+				console.log(`Your message was successfully sent to ${order.phone}`)
 			)
 			.catch((err) => console.log(err));
 		//End of Whats App Message
