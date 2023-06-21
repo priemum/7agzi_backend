@@ -101,7 +101,7 @@ exports.create = (req, res) => {
 					order.scheduledTime
 				} on ${new Date(
 					order.scheduledDate
-				).toLocaleDateString()}. Please check your dashboard or call us at ${contactusPageLink} in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
+				).toLocaleDateString()}. Please check your dashboard or call us at +19512591528 in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
 				to: `whatsapp:${smsData.phone}`,
 			})
 			.then((message) =>
