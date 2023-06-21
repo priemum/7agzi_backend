@@ -72,23 +72,25 @@ exports.signup = async (req, res) => {
 			user,
 		});
 
-		//
-		//
-		//Whats App Message
-		orderStatusSMS.messages
-			.create({
-				from: "whatsapp:+19512591528",
-				body: `Hi ${user.name} - Your profile is under review now, Our team will let you know once your account is activated. This process takes between 2 to 3 days.
+		if (user.role === 1000) {
+			//
+			//
+			//Whats App Message
+			orderStatusSMS.messages
+				.create({
+					from: "whatsapp:+19512591528",
+					body: `Hi ${user.name} - Your profile is under review now, Our team will let you know once your account is activated. This process takes between 2 to 3 days.
 				Thank you!`,
-				to: `whatsapp:+2${user.phone}`,
-			})
-			.then((message) =>
-				console.log(`Your message was successfully sent to ${user.phone}`)
-			)
-			.catch((err) => console.log(err));
-		//End of Whats App Message
-		//
-		//
+					to: `whatsapp:+2${user.phone}`,
+				})
+				.then((message) =>
+					console.log(`Your message was successfully sent to ${user.phone}`)
+				)
+				.catch((err) => console.log(err));
+			//End of Whats App Message
+			//
+			//
+		}
 
 		if (email.includes("@")) {
 			const welcomingEmail = {
