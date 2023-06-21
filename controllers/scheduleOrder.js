@@ -56,7 +56,7 @@ exports.create = (req, res) => {
 			order.scheduledTime
 		}) on ${new Date(
 			order.scheduledDate
-		).toLocaleDateString()}. Please check your dashboard ${userDashboardLink} or call us ${contactusPageLink} in case you would like to make any changes. \nThank you for choosing ${BarbershopName}`,
+		).toLocaleDateString()}. Please check your dashboard ${userDashboardLink} or call us 9099914386 in case you would like to make any changes. Thank you for choosing ${BarbershopName}`,
 		belongsTo: order.belongsTo,
 	};
 	order.save((error, data) => {
