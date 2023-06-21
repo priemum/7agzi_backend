@@ -102,7 +102,7 @@ exports.create = (req, res) => {
 				} on ${new Date(
 					order.scheduledDate
 				).toLocaleDateString()}. Please check your dashboard or call us at ${contactusPageLink} in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
-				to: `whatsapp:+2${smsData.phone}`,
+				to: `whatsapp:${smsData.phone}`,
 			})
 			.then((message) =>
 				console.log(`Your message was successfully sent to ${user.phone}`)
