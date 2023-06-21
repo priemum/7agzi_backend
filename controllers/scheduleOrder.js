@@ -95,7 +95,13 @@ exports.create = (req, res) => {
 		orderStatusSMS.messages
 			.create({
 				from: "whatsapp:+19512591528",
-				body: `Hi Magdy - Your appointment was scheduled at (15:00) on 5/3/2023. Please check your dashboard or call us at 9099914386 in case you would like to make any changes. Thank you for choosing barbershop.`,
+				body: `Hi ${
+					order.scheduledByUserName
+				} - Your appointment was scheduled at (${
+					order.scheduledTime
+				}) on ${new Date(
+					order.scheduledDate
+				).toLocaleDateString()}. Please check your dashboard or call us at +19512591528 in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
 				template: "appointment_confirmation",
 				appointment_confirmation: {
 					1: order.scheduledByUserName,
