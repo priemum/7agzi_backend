@@ -95,13 +95,15 @@ exports.create = (req, res) => {
 		orderStatusSMS.messages
 			.create({
 				from: "whatsapp:+19512591528",
-				body: `Hi ${
-					order.scheduledByUserName
-				} - Your appointment was scheduled at ${
-					order.scheduledTime
-				} on ${new Date(
-					order.scheduledDate
-				).toLocaleDateString()}. Please check your dashboard or call us at +19512591528 in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
+				body: "",
+				template: "appointment_confirmation",
+				appointment_confirmation: {
+					1: order.scheduledByUserName,
+					2: order.scheduledTime,
+					3: new Date(order.scheduledDate).toLocaleDateString(),
+					4: "+19512591528",
+					5: BarbershopName,
+				},
 				to: `whatsapp:${smsData.phone}`,
 			})
 			.then((message) =>
