@@ -12,6 +12,7 @@ const {
 	remove,
 	update,
 	list,
+	listCobmined,
 } = require("../controllers/services");
 
 router.get("/service/:serviceId", read);
@@ -34,6 +35,7 @@ router.delete(
 );
 
 router.get("/services/:ownerId", list);
+router.get("/services/list/combined", listCobmined);
 
 router.param("userId", userById);
 router.param("serviceId", servicesById);

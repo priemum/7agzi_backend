@@ -54,6 +54,12 @@ const servicesSchema = new mongoose.Schema(
 			default: true,
 		},
 
+		catchyPhrase: {
+			type: String,
+			trim: true,
+			default: "",
+		},
+
 		belongsTo: {type: ObjectId, ref: "User"},
 	},
 	{timestamps: true}

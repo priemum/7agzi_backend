@@ -43,6 +43,7 @@ exports.update = (req, res) => {
 	service.serviceLoyaltyPoints = req.body.serviceLoyaltyPoints;
 	service.activeService = req.body.activeService;
 	service.belongsTo = req.body.belongsTo;
+	service.catchyPhrase = req.body.catchyPhrase;
 	service.save((err, data) => {
 		if (err) {
 			return res.status(400).json({
@@ -79,7 +80,20 @@ exports.remove = (req, res) => {
 
 exports.list = (req, res) => {
 	Services.find({belongsTo: mongoose.Types.ObjectId(req.params.ownerId)})
-		.populate("belongsTo", "name email phone storeName")
+		.populate("belongsTo", "_id name email phone storeName")
+		.exec((err, data) => {
+			if (err) {
+				return res.status(400).json({
+					error: err,
+				});
+			}
+			res.json(data);
+		});
+};
+
+exports.listCobmined = (req, res) => {
+	Services.find()
+		.populate("belongsTo", "_id name email phone storeName")
 		.exec((err, data) => {
 			if (err) {
 				return res.status(400).json({
