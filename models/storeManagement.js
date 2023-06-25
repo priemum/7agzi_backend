@@ -26,6 +26,8 @@ const storeManagement = new mongoose.Schema(
 		},
 		addStoreName: String,
 		storePhone: String,
+		longitude: String,
+		latitude: String,
 		daysStoreClosed: {
 			type: Array,
 			trim: true,
