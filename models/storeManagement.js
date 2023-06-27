@@ -42,6 +42,11 @@ const storeManagement = new mongoose.Schema(
 			default: true,
 		},
 
+		activateWhatsAppNotification: {
+			type: Boolean,
+			default: true,
+		},
+
 		activeStore: {
 			type: Boolean,
 			default: false,
