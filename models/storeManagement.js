@@ -1,7 +1,7 @@
 /** @format */
 
 const mongoose = require("mongoose");
-const {ObjectId} = mongoose.Schema;
+const { ObjectId } = mongoose.Schema;
 
 const storeManagement = new mongoose.Schema(
 	{
@@ -10,21 +10,39 @@ const storeManagement = new mongoose.Schema(
 			trim: true,
 			maxlength: 32,
 		},
+
 		discountPercentage: {
 			type: Number,
 			trim: true,
 		},
+
 		onlineServicesFees: {
 			type: Number,
 			trim: true,
 		},
+
 		addStoreLogo: {
 			type: Array,
 		},
+
 		storeThumbnail: {
 			type: Array,
 		},
-		addStoreName: String,
+
+		ownerIdPhoto: {
+			type: Array,
+		},
+
+		addStoreName: {
+			type: String,
+			default: "",
+		},
+
+		addStoreNameArabic: {
+			type: String,
+			default: "",
+		},
+
 		storePhone: String,
 		longitude: String,
 		latitude: String,
@@ -52,9 +70,14 @@ const storeManagement = new mongoose.Schema(
 			default: false,
 		},
 
-		belongsTo: {type: ObjectId, ref: "User"},
+		activeWhatsAppNotification: {
+			type: Boolean,
+			default: true,
+		},
+
+		belongsTo: { type: ObjectId, ref: "User" },
 	},
-	{timestamps: true}
+	{ timestamps: true }
 );
 
 module.exports = mongoose.model("StoreManagement", storeManagement);

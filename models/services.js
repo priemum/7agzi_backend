@@ -1,7 +1,7 @@
 /** @format */
 
 const mongoose = require("mongoose");
-const {ObjectId} = mongoose.Schema;
+const { ObjectId } = mongoose.Schema;
 
 const servicesSchema = new mongoose.Schema(
 	{
@@ -10,8 +10,18 @@ const servicesSchema = new mongoose.Schema(
 			trim: true,
 			lowercase: true,
 		},
+		serviceNameOtherLanguage: {
+			type: String,
+			trim: true,
+			lowercase: true,
+		},
 
 		serviceDescription: {
+			type: Array,
+			trim: true,
+			lowercase: true,
+		},
+		serviceDescriptionOtherLanguage: {
 			type: Array,
 			trim: true,
 			lowercase: true,
@@ -24,6 +34,12 @@ const servicesSchema = new mongoose.Schema(
 		},
 
 		customerType: {
+			type: String,
+			trim: true,
+			maxlength: 32,
+			lowercase: true,
+		},
+		customerTypeOtherLanguage: {
 			type: String,
 			trim: true,
 			maxlength: 32,
@@ -59,10 +75,21 @@ const servicesSchema = new mongoose.Schema(
 			trim: true,
 			default: "",
 		},
+		catchyPhraseOtherLanguage: {
+			type: String,
+			trim: true,
+			default: "",
+		},
 
-		belongsTo: {type: ObjectId, ref: "User"},
+		bundleService: {
+			type: Boolean,
+			trim: true,
+			default: false,
+		},
+
+		belongsTo: { type: ObjectId, ref: "User" },
 	},
-	{timestamps: true}
+	{ timestamps: true }
 );
 
 module.exports = mongoose.model("Services", servicesSchema);
