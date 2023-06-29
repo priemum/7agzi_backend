@@ -1,14 +1,19 @@
 /** @format */
 
 const mongoose = require("mongoose");
-const {ObjectId} = mongoose.Schema;
+const { ObjectId } = mongoose.Schema;
 
 const employeeSchema = new mongoose.Schema(
 	{
 		employeeName: {
 			type: String,
 			trim: true,
-			maxlength: 50,
+			lowercase: true,
+		},
+
+		employeeNameOtherLanguage: {
+			type: String,
+			trim: true,
 		},
 
 		employeeAddress: {
@@ -45,7 +50,7 @@ const employeeSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
-		services: [{type: ObjectId, ref: "Services"}],
+		services: [{ type: ObjectId, ref: "Services" }],
 
 		servicesForGender: {
 			type: Array,
@@ -62,7 +67,7 @@ const employeeSchema = new mongoose.Schema(
 			type: Boolean,
 		},
 
-		likes: [{type: ObjectId, ref: "User"}],
+		likes: [{ type: ObjectId, ref: "User" }],
 		views: [],
 		viewsCount: {
 			type: Number,
@@ -75,20 +80,20 @@ const employeeSchema = new mongoose.Schema(
 				commentsPhotos: {
 					type: Array,
 				},
-				created: {type: Date, default: Date.now},
-				postedBy: {type: ObjectId, ref: "User"},
+				created: { type: Date, default: Date.now },
+				postedBy: { type: ObjectId, ref: "User" },
 			},
 		],
 		ratings: [
 			{
 				star: Number,
-				ratedOn: {type: Date, default: Date.now},
-				ratedBy: {type: ObjectId, ref: "User"},
+				ratedOn: { type: Date, default: Date.now },
+				ratedBy: { type: ObjectId, ref: "User" },
 			},
 		],
-		belongsTo: {type: ObjectId, ref: "User"},
+		belongsTo: { type: ObjectId, ref: "User" },
 	},
-	{timestamps: true}
+	{ timestamps: true }
 );
 
 module.exports = mongoose.model("Employee", employeeSchema);

@@ -28,6 +28,7 @@ const {
 	allUsersListGeneral,
 	getDistinctValues,
 	updateAgent,
+	getOverallSalonOwnersData,
 } = require("../controllers/user");
 
 router.get("/secret/:userId", requireSignin, isAuth, isAdmin, (req, res) => {
@@ -74,6 +75,7 @@ router.put("/user/update/byboss/:userId", isBoss, updateByBoss);
 
 router.get("/distinct-values", getDistinctValues);
 router.put("/agent/update/:agentId/:userId", isBoss, updateAgent);
+router.get("/boss/salon-owners/:userId", isBoss, getOverallSalonOwnersData);
 
 router.get(
 	"/agent/stores/:userId",

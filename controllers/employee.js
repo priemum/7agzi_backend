@@ -25,7 +25,7 @@ exports.employeeById = (req, res, next, id) => {
 };
 
 exports.employeeByPhone = (req, res, next, phone) => {
-	Employee.find({employeePhone: phone})
+	Employee.find({ employeePhone: phone })
 		.populate("ratings.ratedBy", "_id name email")
 		.populate("belongsTo", "name email phone storeName _id")
 		.populate("comments.postedBy", "_id name email")
@@ -56,7 +56,7 @@ exports.create = async (req, res) => {
 };
 
 exports.list = (req, res) => {
-	Employee.find({belongsTo: mongoose.Types.ObjectId(req.params.ownerId)})
+	Employee.find({ belongsTo: mongoose.Types.ObjectId(req.params.ownerId) })
 		.populate("belongsTo", "name email phone storeName _id")
 		.populate(
 			"services",
@@ -85,7 +85,7 @@ exports.list = (req, res) => {
 // };
 
 exports.listForEmployee = (req, res) => {
-	Employee.find({belongsTo: mongoose.Types.ObjectId(req.params.ownerId)})
+	Employee.find({ belongsTo: mongoose.Types.ObjectId(req.params.ownerId) })
 		.populate("belongsTo", "name email phone storeName _id")
 		.populate(
 			"services",
@@ -104,6 +104,8 @@ exports.listForEmployee = (req, res) => {
 exports.update = (req, res) => {
 	const employee = req.employee;
 	employee.employeeName = req.body.employee.employeeName;
+	employee.employeeNameOtherLanguage =
+		req.body.employee.employeeNameOtherLanguage;
 	employee.workingDays = req.body.employee.workingDays;
 	employee.services = req.body.employee.services;
 	employee.servicesForGender = req.body.employee.servicesForGender;
@@ -130,6 +132,8 @@ exports.update = (req, res) => {
 exports.updateByStylist = (req, res) => {
 	const employee = req.employee;
 	employee.employeeName = req.body.employee.employeeName;
+	employee.employeeNameOtherLanguage =
+		req.body.employee.employeeNameOtherLanguage;
 	employee.workingDays = req.body.employee.workingDays;
 	employee.services = req.body.employee.services;
 	employee.servicesForGender = req.body.employee.servicesForGender;
@@ -202,8 +206,8 @@ exports.listBySearch = (req, res) => {
 exports.like = (req, res) => {
 	Employee.findByIdAndUpdate(
 		req.body.employeeId,
-		{$push: {likes: req.body.userId}},
-		{new: true}
+		{ $push: { likes: req.body.userId } },
+		{ new: true }
 	).exec((err, result) => {
 		if (err) {
 			return res.status(400).json({
@@ -218,8 +222,8 @@ exports.like = (req, res) => {
 exports.unlike = (req, res) => {
 	Employee.findByIdAndUpdate(
 		req.body.employeeId,
-		{$pull: {likes: req.body.userId}},
-		{new: true}
+		{ $pull: { likes: req.body.userId } },
+		{ new: true }
 	).exec((err, result) => {
 		if (err) {
 			return res.status(400).json({
@@ -233,7 +237,7 @@ exports.unlike = (req, res) => {
 
 exports.viewsCounter = (req, res) => {
 	let counter = req.body.counter;
-	Employee.findByIdAndUpdate(req.body.employeeId, {viewsCount: counter}).exec(
+	Employee.findByIdAndUpdate(req.body.employeeId, { viewsCount: counter }).exec(
 		(err, result) => {
 			if (err) {
 				return res.status(400).json({
@@ -263,8 +267,8 @@ exports.viewsByUser = (req, res) => {
 
 	Employee.findByIdAndUpdate(
 		req.body.employeeId,
-		{$push: {views: datetime}},
-		{new: true}
+		{ $push: { views: datetime } },
+		{ new: true }
 	).exec((err, result) => {
 		if (err) {
 			return res.status(400).json({
@@ -283,8 +287,8 @@ exports.comment = (req, res) => {
 	// console.log(req.body, "comments");
 	Employee.findByIdAndUpdate(
 		req.body.employeeId,
-		{$push: {comments: comment}},
-		{new: true}
+		{ $push: { comments: comment } },
+		{ new: true }
 	)
 		.populate("comments.postedBy", "_id name email")
 		// .populate("postedBy", "_id name email")
@@ -307,8 +311,8 @@ exports.uncomment = (req, res) => {
 
 	Employee.findByIdAndUpdate(
 		req.body.employeeId,
-		{$pull: {comments: {_id: comment._id}}},
-		{new: true}
+		{ $pull: { comments: { _id: comment._id } } },
+		{ new: true }
 	)
 		.populate("comments.postedBy", "_id name email")
 		.exec((err, result) => {
@@ -325,7 +329,7 @@ exports.uncomment = (req, res) => {
 exports.employeeStar = async (req, res) => {
 	const employee = await Employee.findById(req.params.employeeId).exec();
 	const user = await User.findById(req.body.userId).exec();
-	const {star} = req.body;
+	const { star } = req.body;
 
 	// who is updating?
 	// check if currently logged in user have already added rating to this employee?
@@ -338,9 +342,9 @@ exports.employeeStar = async (req, res) => {
 		let ratingAdded = await Employee.findByIdAndUpdate(
 			employee._id,
 			{
-				$push: {ratings: {star, ratedBy: user._id}},
+				$push: { ratings: { star, ratedBy: user._id } },
 			},
-			{new: true}
+			{ new: true }
 		).exec();
 		// console.log("ratingAdded", ratingAdded);
 		res.json(ratingAdded);
@@ -348,10 +352,10 @@ exports.employeeStar = async (req, res) => {
 		// if user have already left rating, update it
 		const ratingUpdated = await Employee.updateOne(
 			{
-				ratings: {$elemMatch: existingRatingObject},
+				ratings: { $elemMatch: existingRatingObject },
 			},
-			{$set: {"ratings.$.star": star}},
-			{new: true}
+			{ $set: { "ratings.$.star": star } },
+			{ new: true }
 		).exec();
 		// console.log("ratingUpdated", ratingUpdated);
 		res.json(ratingUpdated);

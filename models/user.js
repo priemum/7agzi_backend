@@ -2,8 +2,8 @@
 
 const mongoose = require("mongoose");
 const crypto = require("crypto");
-const {v1: uuidv1} = require("uuid");
-const {ObjectId} = mongoose.Schema;
+const { v1: uuidv1 } = require("uuid");
+const { ObjectId } = mongoose.Schema;
 
 const userSchema = new mongoose.Schema(
 	{
@@ -94,7 +94,7 @@ const userSchema = new mongoose.Schema(
 			default: "",
 		},
 
-		likesUser: [{type: ObjectId, ref: "Employee"}],
+		likesUser: [{ type: ObjectId, ref: "Employee" }],
 
 		points: {
 			type: Number,
@@ -144,12 +144,12 @@ const userSchema = new mongoose.Schema(
 
 		agentOtherData: {
 			type: Object,
-			default: {phone2: "No Agent"},
+			default: { phone2: "No Agent" },
 		},
 
 		agent: {
 			type: Object,
-			default: {name: "No Agent"},
+			default: { name: "No Agent" },
 		},
 		agentPaid: {
 			type: Boolean,
@@ -164,7 +164,7 @@ const userSchema = new mongoose.Schema(
 			default: false,
 		},
 	},
-	{timestamps: true}
+	{ timestamps: true }
 );
 
 // virtual field

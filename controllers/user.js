@@ -1,7 +1,10 @@
 /** @format */
 
 const User = require("../models/user");
-const {ScheduleOrder} = require("../models/scheduleOrder");
+const { ScheduleOrder } = require("../models/scheduleOrder");
+const StoreManagement = require("../models/storeManagement");
+const Services = require("../models/services");
+const Employee = require("../models/employee");
 
 exports.userById = (req, res, next, id) => {
 	User.findById(id)
@@ -24,7 +27,7 @@ exports.userById = (req, res, next, id) => {
 };
 
 exports.userByPhoneNumber = (req, res, next, phoneNumber) => {
-	User.find({email: phoneNumber})
+	User.find({ email: phoneNumber })
 		.select(
 			"_id name email phone role user points activePoints likesUser activeUser createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid activeAgent agentOtherData agentPaidPro storeType"
 		)
@@ -122,7 +125,7 @@ exports.update = (req, res) => {
 		subscriptionId,
 	} = req.body;
 
-	User.findOne({_id: req.profile._id}, (err, user) => {
+	User.findOne({ _id: req.profile._id }, (err, user) => {
 		if (err || !user) {
 			return res.status(400).json({
 				error: "User not found",
@@ -212,9 +215,9 @@ exports.addOrderToUserHistory = (req, res, next) => {
 	});
 
 	User.findOneAndUpdate(
-		{_id: req.profile._id},
-		{$push: {history: history}},
-		{new: true},
+		{ _id: req.profile._id },
+		{ $push: { history: history } },
+		{ new: true },
 		(error, data) => {
 			if (error) {
 				return res.status(400).json({
@@ -227,7 +230,7 @@ exports.addOrderToUserHistory = (req, res, next) => {
 };
 
 exports.purchaseHistory = (req, res) => {
-	ScheduleOrder.find({user: req.profile._id})
+	ScheduleOrder.find({ user: req.profile._id })
 		.populate("user", "_id name points activePoints likesUser")
 		// .populate(
 		// 	"likesUser",
@@ -268,7 +271,7 @@ exports.increasePoints = (req, res, next) => {
 			},
 		},
 
-		{new: true},
+		{ new: true },
 		function (err, response) {
 			if (err) {
 				console.log(err, "error from points update");
@@ -282,8 +285,8 @@ exports.increasePoints = (req, res, next) => {
 exports.like = (req, res) => {
 	User.findByIdAndUpdate(
 		req.body.userId,
-		{$push: {likesUser: req.body.employeeId}},
-		{new: true}
+		{ $push: { likesUser: req.body.employeeId } },
+		{ new: true }
 	)
 		.populate("likesUser", "_id employeeName")
 
@@ -301,8 +304,8 @@ exports.like = (req, res) => {
 exports.unlike = (req, res) => {
 	User.findByIdAndUpdate(
 		req.body.userId,
-		{$pull: {likesUser: req.body.employeeId}},
-		{new: true}
+		{ $pull: { likesUser: req.body.employeeId } },
+		{ new: true }
 	).exec((err, result) => {
 		if (err) {
 			return res.status(400).json({
@@ -316,7 +319,7 @@ exports.unlike = (req, res) => {
 
 exports.updateUserByAdminClients = (req, res) => {
 	User.updateOne(
-		{_id: req.body.clientUserId},
+		{ _id: req.body.clientUserId },
 		{
 			$set: {
 				activeUser: req.body.activeUser,
@@ -336,12 +339,12 @@ exports.updateUserByAdminClients = (req, res) => {
 
 exports.updateByAdminUpdated = (req, res) => {
 	// console.log('UPDATE USER - req.user', req.user, 'UPDATE DATA', req.body);
-	const {name, password, email, activeUser} = req.body;
+	const { name, password, email, activeUser } = req.body;
 
 	// console.log(req.body, "req.body");
 	// console.log(req.updatedUserByAdmin, "req.updatedUserByAdmin");
 
-	User.findOne({_id: req.updatedUserByAdmin._id}, (err, user) => {
+	User.findOne({ _id: req.updatedUserByAdmin._id }, (err, user) => {
 		if (err || !user) {
 			return res.status(400).json({
 				error: "User not found",
@@ -396,7 +399,7 @@ exports.updateByAdminUpdated = (req, res) => {
 };
 
 exports.allUsersListBoss = (req, res) => {
-	User.find({role: {$ne: 0}})
+	User.find({ role: { $ne: 0 } })
 		.select(
 			"_id name email phone role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid activeAgent agentOtherData agentPaidPro storeType"
 		)
@@ -436,7 +439,7 @@ exports.updateByBoss = (req, res) => {
 		agentPaidPro,
 	} = req.body;
 
-	User.findOne({_id: userId}, (err, user) => {
+	User.findOne({ _id: userId }, (err, user) => {
 		if (err || !user) {
 			return res.status(400).json({
 				error: "User not found",
@@ -527,7 +530,7 @@ exports.updateByBoss = (req, res) => {
 };
 
 exports.allUsersListGeneral = (req, res) => {
-	User.find({role: 2000})
+	User.find({ role: 2000 })
 		.select(
 			"_id name email role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent agentPaid activeAgent agentOtherData agentPaidPro storeType"
 		)
@@ -549,9 +552,9 @@ exports.getDistinctValues = (req, res) => {
 	User.aggregate([
 		{
 			$match: {
-				storeCountry: {$ne: "no store"},
-				storeGovernorate: {$ne: "no store"},
-				storeDistrict: {$ne: "no store"},
+				storeCountry: { $ne: "no store" },
+				storeGovernorate: { $ne: "no store" },
+				storeDistrict: { $ne: "no store" },
 				role: 1000,
 			},
 		},
@@ -562,7 +565,7 @@ exports.getDistinctValues = (req, res) => {
 					storeGovernorate: "$storeGovernorate",
 					storeDistrict: "$storeDistrict",
 				},
-				userId: {$first: "$_id"},
+				userId: { $first: "$_id" },
 			},
 		},
 		{
@@ -596,7 +599,7 @@ exports.updateAgent = (req, res) => {
 		agentPaidPro,
 	} = req.body;
 
-	User.findOne({_id: req.params.agentId}, (err, user) => {
+	User.findOne({ _id: req.params.agentId }, (err, user) => {
 		if (err || !user) {
 			return res.status(400).json({
 				error: "User not found",
@@ -666,4 +669,113 @@ exports.updateAgent = (req, res) => {
 			res.json(updatedUser);
 		});
 	});
+};
+
+//Summary
+exports.getOverallSalonOwnersData = async (req, res) => {
+	try {
+		const salonOwners = await User.find({ role: 1000 }).lean();
+
+		const tempResult = {};
+
+		await Promise.all(
+			salonOwners.map(async (salonOwner) => {
+				const settings = await StoreManagement.find({
+					belongsTo: salonOwner._id,
+				});
+				const services = await Services.find({ belongsTo: salonOwner._id });
+				const employees = await Employee.find({ belongsTo: salonOwner._id });
+				const appointmentsCount = await ScheduleOrder.countDocuments({
+					belongsTo: salonOwner._id,
+				});
+
+				const agentName = salonOwner.agent.name;
+
+				if (!tempResult[agentName]) {
+					tempResult[agentName] = {
+						agentName: agentName,
+						RegisteredSalons: 0,
+						activeSalons: 0,
+						addedSettings: 0,
+						addedEmployees: 0,
+						addedServices: 0,
+						proSubscription: 0,
+						platFormShare: 0,
+						appointmentsCount: 0,
+					};
+				}
+
+				tempResult[agentName].RegisteredSalons += 1;
+				tempResult[agentName].activeSalons += settings.filter(
+					(setting) => setting.activeStore
+				).length;
+				tempResult[agentName].addedSettings += settings.length > 0 ? 1 : 0;
+				tempResult[agentName].addedEmployees += employees.length > 0 ? 1 : 0;
+				tempResult[agentName].addedServices += services.length > 0 ? 1 : 0;
+				tempResult[agentName].proSubscription += salonOwner.subscribed ? 1 : 0;
+				tempResult[agentName].platFormShare += salonOwner.platFormShare ? 1 : 0;
+				tempResult[agentName].appointmentsCount += appointmentsCount;
+
+				// Check if everything is good
+				tempResult[agentName].everythingIsGood =
+					tempResult[agentName].RegisteredSalons ===
+						tempResult[agentName].activeSalons &&
+					tempResult[agentName].RegisteredSalons ===
+						tempResult[agentName].addedSettings &&
+					tempResult[agentName].RegisteredSalons ===
+						tempResult[agentName].addedEmployees &&
+					tempResult[agentName].RegisteredSalons ===
+						tempResult[agentName].addedServices;
+			})
+		);
+
+		// Convert the accumulated data into an array
+		const result = Object.values(tempResult);
+
+		res.json(result);
+	} catch (error) {
+		console.error(error);
+		res.status(500).send("Server error");
+	}
+};
+
+//Detailed Data
+exports.getOverallSalonOwnersDataInDetails = async (req, res) => {
+	try {
+		const salonOwners = await User.find({ role: 1000 }).lean();
+
+		const result = await Promise.all(
+			salonOwners.map(async (salonOwner) => {
+				const settings = await StoreManagement.find({
+					belongsTo: salonOwner._id,
+				}).lean();
+				const services = await Services.find({
+					belongsTo: salonOwner._id,
+				}).lean();
+				const employees = await Employee.find({
+					belongsTo: salonOwner._id,
+				}).lean();
+				const appointmentsCount = await ScheduleOrder.countDocuments({
+					belongsTo: salonOwner._id,
+				});
+
+				return {
+					agentName: salonOwner.agent.name,
+					RegisteredSalons: 1, // assuming one salon per owner
+					activeSalons: settings.filter((setting) => setting.activeStore),
+					addedSettings: settings,
+					addedEmployees: employees,
+					addedServices: services,
+					proSubscription: salonOwner.subscribed ? 1 : 0,
+					platFormShare: salonOwner.platFormShare ? 1 : 0,
+					appointmentsCount: appointmentsCount,
+				};
+			})
+		);
+
+		res.json(result);
+	} catch (error) {
+		console.error(error);
+		res.status(500).send("Server error");
+	}
 };
