@@ -682,6 +682,7 @@ exports.getOverallSalonOwnersData = async (req, res) => {
 			salonOwners.map(async (salonOwner) => {
 				const settings = await StoreManagement.find({
 					belongsTo: salonOwner._id,
+					activeStore: true, // Filter only active stores
 				});
 				const services = await Services.find({ belongsTo: salonOwner._id });
 				const employees = await Employee.find({ belongsTo: salonOwner._id });
@@ -706,9 +707,9 @@ exports.getOverallSalonOwnersData = async (req, res) => {
 				}
 
 				tempResult[agentName].RegisteredSalons += 1;
-				tempResult[agentName].activeSalons += settings.filter(
-					(setting) => setting.activeStore
-				).length;
+				tempResult[agentName].activeSalons += new Set(
+					settings.map((setting) => setting.storeName)
+				).size; // Use Set to get unique active store names
 				tempResult[agentName].addedSettings += settings.length > 0 ? 1 : 0;
 				tempResult[agentName].addedEmployees += employees.length > 0 ? 1 : 0;
 				tempResult[agentName].addedServices += services.length > 0 ? 1 : 0;
