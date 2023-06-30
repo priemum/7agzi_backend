@@ -142,6 +142,11 @@ const userSchema = new mongoose.Schema(
 			default: "Not Added",
 		},
 
+		accountSuspended: {
+			type: Boolean,
+			default: false,
+		},
+
 		agentOtherData: {
 			type: Object,
 			default: { phone2: "No Agent" },

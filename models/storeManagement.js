@@ -75,6 +75,43 @@ const storeManagement = new mongoose.Schema(
 			default: true,
 		},
 
+		branchesCount: {
+			type: Number,
+			trim: true,
+			maxlength: 32,
+		},
+
+		stylistsCount: {
+			type: Number,
+			trim: true,
+			maxlength: 32,
+		},
+
+		chairsCount: {
+			type: Number,
+			trim: true,
+			maxlength: 32,
+		},
+		cashPayment: {
+			type: Boolean,
+			default: true,
+		},
+
+		visaPayment: {
+			type: Boolean,
+			default: false,
+		},
+
+		airConditioned: {
+			type: Boolean,
+			default: false,
+		},
+
+		parking: {
+			type: Boolean,
+			default: false,
+		},
+
 		belongsTo: { type: ObjectId, ref: "User" },
 	},
 	{ timestamps: true }
