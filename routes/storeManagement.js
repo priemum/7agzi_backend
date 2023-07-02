@@ -2,8 +2,13 @@
 
 const express = require("express");
 const router = express.Router();
-const {requireSignin, isAuth, isAdmin, isBoss} = require("../controllers/auth");
-const {userById} = require("../controllers/user");
+const {
+	requireSignin,
+	isAuth,
+	isAdmin,
+	isBoss,
+} = require("../controllers/auth");
+const { userById } = require("../controllers/user");
 
 const {
 	create,
@@ -12,6 +17,7 @@ const {
 	listFrontend,
 	listFrontendBossAdmin,
 	updatingStoreStatus,
+	listFrontend2,
 } = require("../controllers/storeManagement");
 
 router.post(
@@ -35,6 +41,8 @@ router.put(
 	isBoss,
 	updatingStoreStatus
 );
+
+router.get("/store-management-frontend-updated", listFrontend2);
 
 router.param("userId", userById);
 router.param("serviceId", StoreManagementById);

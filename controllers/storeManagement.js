@@ -1,6 +1,8 @@
 /** @format */
 
 const StoreManagement = require("../models/storeManagement");
+const User = require("../models/user");
+const Services = require("../models/services");
 const mongoose = require("mongoose");
 
 exports.StoreManagementById = (req, res, next, id) => {
@@ -23,7 +25,7 @@ exports.create = (req, res) => {
 				error: err,
 			});
 		}
-		res.json({data});
+		res.json({ data });
 	});
 };
 
@@ -48,7 +50,9 @@ exports.listFrontend = (req, res) => {
 };
 
 exports.list = (req, res) => {
-	StoreManagement.find({belongsTo: mongoose.Types.ObjectId(req.params.ownerId)})
+	StoreManagement.find({
+		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
+	})
 		.populate(
 			"belongsTo",
 			"_id name email phone role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent platFormShareToken"
@@ -85,13 +89,13 @@ exports.listFrontendBossAdmin = (req, res) => {
 exports.updatingStoreStatus = (req, res, next) => {
 	console.log(req.body.storeId, "req.body.storeId");
 	StoreManagement.findOneAndUpdate(
-		{_id: req.body.storeId},
+		{ _id: req.body.storeId },
 		{
 			$set: {
 				activeStore: req.body.status,
 			},
 		},
-		{new: true},
+		{ new: true },
 		async (err, store) => {
 			if (err) {
 				console.error("Error to update store status", err, req.body);
@@ -109,7 +113,92 @@ exports.updatingStoreStatus = (req, res, next) => {
 			}
 
 			// Send a response when the update was successful
-			res.json({success: true, message: "Store status updated", store});
+			res.json({ success: true, message: "Store status updated", store });
 		}
 	);
+};
+
+exports.listFrontend2 = async (req, res) => {
+	try {
+		// Get all user ids with role 1000
+		const usersWithRole1000 = await User.find({ role: 1000 }, "_id");
+		const userIds = usersWithRole1000.map((user) => user._id);
+
+		// Find the last StoreManagement record for each user with role 1000
+		const storeManagementRecords = await StoreManagement.aggregate([
+			{
+				$match: { belongsTo: { $in: userIds } },
+			},
+			{
+				$sort: { createdAt: -1 },
+			},
+			{
+				$group: {
+					_id: "$belongsTo",
+					doc: { $first: "$$ROOT" },
+				},
+			},
+			{
+				$replaceRoot: { newRoot: "$doc" },
+			},
+		]);
+
+		// only perform services aggregation if there are store management records
+		if (storeManagementRecords.length > 0) {
+			// Find the last unique Services record for each user with role 1000
+			const servicesRecords = await Services.aggregate([
+				{
+					$match: { belongsTo: { $in: userIds } },
+				},
+				{
+					$sort: { createdAt: -1 },
+				},
+				{
+					$group: {
+						_id: {
+							belongsTo: "$belongsTo",
+							serviceName: "$serviceName",
+							customerType: "$customerType",
+						},
+						doc: { $first: "$$ROOT" },
+					},
+				},
+				{
+					$replaceRoot: { newRoot: "$doc" },
+				},
+			]).catch((err) => {
+				console.error("Error with Services aggregation: ", err);
+			});
+
+			// Map services records to their respective users
+			const servicesByUser = servicesRecords.reduce((acc, record) => {
+				const userId = record.belongsTo.toString();
+				if (!acc[userId]) {
+					acc[userId] = [];
+				}
+				acc[userId].push(record);
+				return acc;
+			}, {});
+
+			// Add the services to the StoreManagement records and populate user data
+			for (let i = 0; i < storeManagementRecords.length; i++) {
+				const storeManagementRecord = storeManagementRecords[i];
+				const userId = storeManagementRecord.belongsTo.toString();
+				storeManagementRecord.services = servicesByUser[userId] || [];
+
+				// Replace belongsTo field with populated user data
+				storeManagementRecord.belongsTo = await User.findById(userId).select(
+					"_id name email phone role user points storeType createdAt storeName storeGovernorate storeAddress storeDistrict"
+				);
+			}
+		}
+
+		// Send the response
+		res.json(storeManagementRecords);
+	} catch (err) {
+		console.log(err, "err");
+		return res.status(400).json({
+			error: err,
+		});
+	}
 };
