@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const _ = require("lodash");
 const expressJwt = require("express-jwt");
 require("dotenv").config();
-const {OAuth2Client} = require("google-auth-library");
+const { OAuth2Client } = require("google-auth-library");
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const orderStatusSMS = require("twilio")(
@@ -13,14 +13,14 @@ const orderStatusSMS = require("twilio")(
 	process.env.TWILIO_AUTH_TOKEN
 );
 
-const BarbershopName = "Hair Salon";
-const BarbershopWebsite = "http://hairsalondemo.infinite-apps.com/";
-const userDashboardLink = "http://hairsalondemo.infinite-apps.com/dashboard";
-const contactusPageLink = "http://hairsalondemo.infinite-apps.com/contact";
-const supportEmail = "info@hair-salon.com";
+const BarbershopName = "XLOOK";
+const BarbershopWebsite = "http://xlookpro.com/";
+const userDashboardLink = "http://xlookpro.com/dashboard";
+const contactusPageLink = "http://xlookpro.com/contact";
+const supportEmail = "info@xlookpro.com";
 const fromEmail = "noreply@infinite-apps.com";
 const defaultEmail = "ahmed.abdelrazak@infinite-apps.com";
-const phoneNumber1 = "(999) 222-1111";
+const phoneNumber1 = "01097542859";
 const phoneNumber2 = "(999) 222-3322";
 const shopAddress = "123 main street, LA, CA";
 const shopLogo =
@@ -39,8 +39,6 @@ exports.signup = async (req, res) => {
 		storeGovernorate,
 	} = req.body;
 
-	console.log(req.body, "req.body");
-
 	if (!name) return res.status(400).send("Please fill in your name.");
 	if (!password) return res.status(400).send("Please fill in your password.");
 	if (!phone) return res.status(400).send("Please fill in your phone.");
@@ -53,8 +51,8 @@ exports.signup = async (req, res) => {
 	if (password.length < 6)
 		return res
 			.status(400)
-			.json({error: "Passwords should be 6 characters or more"});
-	let userExist = await User.findOne({email}).exec();
+			.json({ error: "Passwords should be 6 characters or more" });
+	let userExist = await User.findOne({ email }).exec();
 	if (userExist)
 		return res.status(400).json({
 			error: "User already exists, please try a different email/phone",
@@ -65,14 +63,34 @@ exports.signup = async (req, res) => {
 	await user.save(() => {
 		user.salt = undefined;
 		user.hashed_password = undefined;
-		const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET);
-		res.cookie("t", token, {expire: "1d"});
+		const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+		res.cookie("t", token, { expire: "1d" });
 
 		res.json({
 			user,
 		});
 
 		if (user.role === 1000) {
+			//
+			//
+			//Whats App Message
+			orderStatusSMS.messages
+				.create({
+					from: "whatsapp:+19512591528",
+					body: `Hi ${user.name} - Your profile is under review now, Our team will let you know once your account is activated. This process takes between 2 to 3 days.
+				Thank you!`,
+					to: `whatsapp:+2${user.phone}`,
+				})
+				.then((message) =>
+					console.log(`Your message was successfully sent to ${user.phone}`)
+				)
+				.catch((err) => console.log(err));
+			//End of Whats App Message
+			//
+			//
+		}
+
+		if (user.role === 2000) {
 			//
 			//
 			//Whats App Message
@@ -116,7 +134,7 @@ exports.signup = async (req, res) => {
 							 ${BarbershopName} support team <br />
 							 Contact Email: ${supportEmail} <br />
 							 Phone#: ${phoneNumber1} <br />
-							 Landline#: ${phoneNumber2} <br />
+							//  Landline#: ${phoneNumber2} <br />
 							 Address:  ${shopAddress}  <br />
 							 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
 							 <br />
@@ -136,8 +154,8 @@ exports.signup = async (req, res) => {
 
 exports.signin = (req, res) => {
 	//find the user based on email
-	const {email, password} = req.body;
-	User.findOne({email}, (err, user) => {
+	const { email, password } = req.body;
+	User.findOne({ email }, (err, user) => {
 		if (err || !user) {
 			return res.status(400).json({
 				error: "User is Unavailable, Please Register or Try Again!!",
@@ -152,9 +170,9 @@ exports.signin = (req, res) => {
 		}
 
 		//generate a signed token with user id and secret
-		const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET);
+		const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
 		//persist the token as 't' in cookie with expiry date
-		res.cookie("t", token, {expire: "1d"});
+		res.cookie("t", token, { expire: "1d" });
 
 		//return response with user and token to frontend client
 		const {
@@ -213,7 +231,7 @@ exports.signin = (req, res) => {
 
 exports.signout = (req, res) => {
 	res.clearCookie("t");
-	res.json({message: "User Signed Out"});
+	res.json({ message: "User Signed Out" });
 };
 
 exports.requireSignin = expressJwt({
@@ -292,9 +310,9 @@ exports.isInStore = (req, res, next) => {
 };
 
 exports.forgotPassword = (req, res) => {
-	const {email} = req.body;
+	const { email } = req.body;
 
-	User.findOne({email}, (err, user) => {
+	User.findOne({ email }, (err, user) => {
 		if (err || !user) {
 			return res.status(400).json({
 				error: "User with that email does not exist",
@@ -302,7 +320,7 @@ exports.forgotPassword = (req, res) => {
 		}
 
 		const token = jwt.sign(
-			{_id: user._id, name: user.name},
+			{ _id: user._id, name: user.name },
 			process.env.JWT_RESET_PASSWORD,
 			{
 				expiresIn: "10m",
@@ -324,7 +342,7 @@ exports.forgotPassword = (req, res) => {
 							 ${BarbershopName} support team <br />
 							 Contact Email: ${supportEmail} <br />
 							 Phone#: ${phoneNumber1} <br />
-							 Landline#: ${phoneNumber2} <br />
+							//  Landline#: ${phoneNumber2} <br />
 							 Address:  ${shopAddress}  <br />
 							 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
 							 <br />
@@ -348,7 +366,7 @@ exports.forgotPassword = (req, res) => {
 				 ${BarbershopName} support team <br />
 				 Contact Email: ${supportEmail} <br />
 				 Phone#: ${phoneNumber1} <br />
-				 Landline#: ${phoneNumber2} <br />
+				//  Landline#: ${phoneNumber2} <br />
 				 Address:  ${shopAddress}  <br />
 				 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
 				 <br />
@@ -358,7 +376,7 @@ exports.forgotPassword = (req, res) => {
 		    `,
 		};
 
-		return user.updateOne({resetPasswordLink: token}, (err, success) => {
+		return user.updateOne({ resetPasswordLink: token }, (err, success) => {
 			if (err) {
 				console.log("RESET PASSWORD LINK ERROR", err);
 				return res.status(400).json({
@@ -386,7 +404,7 @@ exports.forgotPassword = (req, res) => {
 };
 
 exports.resetPassword = (req, res) => {
-	const {resetPasswordLink, newPassword} = req.body;
+	const { resetPasswordLink, newPassword } = req.body;
 
 	if (resetPasswordLink) {
 		jwt.verify(
@@ -399,7 +417,7 @@ exports.resetPassword = (req, res) => {
 					});
 				}
 
-				User.findOne({resetPasswordLink}, (err, user) => {
+				User.findOne({ resetPasswordLink }, (err, user) => {
 					if (err || !user) {
 						return res.status(400).json({
 							error: "Something went wrong. Try later",
@@ -431,27 +449,27 @@ exports.resetPassword = (req, res) => {
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 exports.googleLogin = (req, res) => {
-	const {idToken} = req.body;
+	const { idToken } = req.body;
 
 	client
-		.verifyIdToken({idToken, audience: process.env.GOOGLE_CLIENT_ID})
+		.verifyIdToken({ idToken, audience: process.env.GOOGLE_CLIENT_ID })
 		.then((response) => {
 			// console.log('GOOGLE LOGIN RESPONSE',response)
-			const {email_verified, name, email} = response.payload;
+			const { email_verified, name, email } = response.payload;
 			if (email_verified) {
-				User.findOne({email}).exec((err, user) => {
+				User.findOne({ email }).exec((err, user) => {
 					if (user) {
-						const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET, {
+						const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
 							expiresIn: "7d",
 						});
-						const {_id, email, name, role} = user;
+						const { _id, email, name, role } = user;
 						return res.json({
 							token,
-							user: {_id, email, name, role},
+							user: { _id, email, name, role },
 						});
 					} else {
 						let password = email + process.env.JWT_SECRET;
-						user = new User({name, email, password});
+						user = new User({ name, email, password });
 						user.save((err, data) => {
 							if (err) {
 								console.log("ERROR GOOGLE LOGIN ON USER SAVE", err);
@@ -459,13 +477,17 @@ exports.googleLogin = (req, res) => {
 									error: "User signup failed with google",
 								});
 							}
-							const token = jwt.sign({_id: data._id}, process.env.JWT_SECRET, {
-								expiresIn: "7d",
-							});
-							const {_id, email, name, role} = data;
+							const token = jwt.sign(
+								{ _id: data._id },
+								process.env.JWT_SECRET,
+								{
+									expiresIn: "7d",
+								}
+							);
+							const { _id, email, name, role } = data;
 							return res.json({
 								token,
-								user: {_id, email, name, role},
+								user: { _id, email, name, role },
 							});
 						});
 						const welcomingEmail = {
@@ -491,7 +513,7 @@ exports.googleLogin = (req, res) => {
 										 ${BarbershopName} support team <br />
 										 Contact Email: ${supportEmail} <br />
 										 Phone#: ${phoneNumber1} <br />
-										 Landline#: ${phoneNumber2} <br />
+										//  Landline#: ${phoneNumber2} <br />
 										 Address:  ${shopAddress}  <br />
 										 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
 										 <br />
