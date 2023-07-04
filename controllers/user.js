@@ -678,11 +678,15 @@ exports.getOverallSalonOwnersData = async (req, res) => {
 
 		const tempResult = {};
 
+		// Unique salon owner ids that have had their settings added.
+		const addedSettingsIds = new Set();
+		// Unique salon owner ids with active stores.
+		const activeSalonsIds = new Set();
+
 		await Promise.all(
 			salonOwners.map(async (salonOwner) => {
 				const settings = await StoreManagement.find({
 					belongsTo: salonOwner._id,
-					activeStore: true, // Filter only active stores
 				});
 				const services = await Services.find({ belongsTo: salonOwner._id });
 				const employees = await Employee.find({ belongsTo: salonOwner._id });
@@ -707,10 +711,20 @@ exports.getOverallSalonOwnersData = async (req, res) => {
 				}
 
 				tempResult[agentName].RegisteredSalons += 1;
-				tempResult[agentName].activeSalons += new Set(
-					settings.map((setting) => setting.storeName)
-				).size; // Use Set to get unique active store names
-				tempResult[agentName].addedSettings += settings.length > 0 ? 1 : 0;
+
+				// Count active stores only once per salon owner.
+				if (
+					settings.some((setting) => setting.activeStore) &&
+					!activeSalonsIds.has(salonOwner._id)
+				) {
+					tempResult[agentName].activeSalons += 1;
+					activeSalonsIds.add(salonOwner._id);
+				}
+
+				if (settings.length > 0 && !addedSettingsIds.has(salonOwner._id)) {
+					tempResult[agentName].addedSettings += 1;
+					addedSettingsIds.add(salonOwner._id);
+				}
 				tempResult[agentName].addedEmployees += employees.length > 0 ? 1 : 0;
 				tempResult[agentName].addedServices += services.length > 0 ? 1 : 0;
 				tempResult[agentName].proSubscription += salonOwner.subscribed ? 1 : 0;
