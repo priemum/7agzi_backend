@@ -687,7 +687,7 @@ exports.getOverallSalonOwnersData = async (req, res) => {
 			salonOwners.map(async (salonOwner) => {
 				const settings = await StoreManagement.find({
 					belongsTo: salonOwner._id,
-				});
+				}).sort("-createdAt"); // Sort by the addedAt field in descending order
 				const services = await Services.find({ belongsTo: salonOwner._id });
 				const employees = await Employee.find({ belongsTo: salonOwner._id });
 				const appointmentsCount = await ScheduleOrder.countDocuments({
@@ -712,11 +712,8 @@ exports.getOverallSalonOwnersData = async (req, res) => {
 
 				tempResult[agentName].RegisteredSalons += 1;
 
-				// Count active stores only once per salon owner.
-				if (
-					settings.some((setting) => setting.activeStore) &&
-					!activeSalonsIds.has(salonOwner._id)
-				) {
+				// Consider the active status of the most recent settings added.
+				if (settings[0]?.activeStore && !activeSalonsIds.has(salonOwner._id)) {
 					tempResult[agentName].activeSalons += 1;
 					activeSalonsIds.add(salonOwner._id);
 				}
