@@ -70,6 +70,9 @@ exports.signup = async (req, res) => {
 			user,
 		});
 
+		var fullNameArray = user.name.split(" ");
+		var firstName = fullNameArray[0].trim();
+
 		if (user.role === 1000) {
 			//
 			//
@@ -77,7 +80,7 @@ exports.signup = async (req, res) => {
 			orderStatusSMS.messages
 				.create({
 					from: "whatsapp:+19512591528",
-					body: `Hi ${user.name} - Your profile is under review now, Our team will let you know once your account is activated. This process takes between 2 to 3 days.
+					body: `Hi ${firstName} - Your profile is under review now, Our team will let you know once your account is activated. This process takes between 2 to 3 days.
 				Thank you!`,
 					to: `whatsapp:+2${user.phone}`,
 				})
@@ -97,7 +100,7 @@ exports.signup = async (req, res) => {
 			orderStatusSMS.messages
 				.create({
 					from: "whatsapp:+19512591528",
-					body: `Hi ${user.name} - Your profile is under review now, Our team will let you know once your account is activated. This process takes between 2 to 3 days.
+					body: `Hi ${firstName} - Your profile is under review now, Our team will let you know once your account is activated. This process takes between 2 to 3 days.
 				Thank you!`,
 					to: `whatsapp:+2${user.phone}`,
 				})
@@ -244,7 +247,8 @@ exports.isAuth = (req, res, next) => {
 	// Check if user is super user
 	if (
 		(req.profile && req.profile.role === 10000) ||
-		req.profile.role === 1000
+		req.profile.role === 1000 ||
+		req.profile.role === 2000
 	) {
 		return next();
 	}
@@ -261,7 +265,11 @@ exports.isAuth = (req, res, next) => {
 };
 
 exports.isAdmin = (req, res, next) => {
-	if (req.profile.role !== 1000 && req.profile.role !== 10000) {
+	if (
+		req.profile.role !== 1000 &&
+		req.profile.role !== 10000 &&
+		req.profile.role !== 2000
+	) {
 		return res.status(403).json({
 			error: "Admin resource! access denied",
 		});
@@ -270,7 +278,7 @@ exports.isAdmin = (req, res, next) => {
 };
 
 exports.isBoss = (req, res, next) => {
-	if (req.profile.role !== 10000) {
+	if (req.profile.role !== 10000 && req.profile.role !== 2000) {
 		return res.status(403).json({
 			error: "Boss resource! access denied",
 		});

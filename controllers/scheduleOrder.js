@@ -1,6 +1,6 @@
 /** @format */
 
-const {ScheduleOrder, EmployeeItem} = require("../models/scheduleOrder");
+const { ScheduleOrder, EmployeeItem } = require("../models/scheduleOrder");
 const User = require("../models/user");
 const mongoose = require("mongoose");
 const fs = require("fs");
@@ -15,14 +15,14 @@ const orderStatusSMS = require("twilio")(
 	process.env.TWILIO_AUTH_TOKEN
 );
 
-const BarbershopName = "7agziiii";
-const BarbershopWebsite = "http://hairsalondemo.infinite-apps.com/";
-const userDashboardLink = "http://hairsalondemo.infinite-apps.com/dashboard";
-const contactusPageLink = "http://hairsalondemo.infinite-apps.com/contact";
-const supportEmail = "info@hair-salon.com";
+const BarbershopName = "XLOOK";
+const BarbershopWebsite = "http://xlookpro.com/";
+const userDashboardLink = "http://xlookpro.com/dashboard";
+const contactusPageLink = "http://xlookpro.com/contact";
+const supportEmail = "info@xlookpro.com";
 const fromEmail = "noreply@infinite-apps.com";
 const defaultEmail = "ahmed.abdelrazak@infinite-apps.com";
-const phoneNumber1 = "(999) 222-1111";
+const phoneNumber1 = "01097542859";
 const phoneNumber2 = "(999) 222-3322";
 const shopAddress = "123 main street, LA, CA";
 const shopLogo =
@@ -137,7 +137,7 @@ exports.listScheduledOrders = (req, res) => {
 	sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 90);
 
 	ScheduleOrder.find({
-		createdAt: {$gte: sixtyDaysAgo},
+		createdAt: { $gte: sixtyDaysAgo },
 		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
 	})
 		.populate("user", "_id name email service scheduledTime")
@@ -173,7 +173,9 @@ exports.listScheduledOrders = (req, res) => {
 };
 
 exports.list = (req, res) => {
-	Hours_Schedules.find({belongsTo: mongoose.Types.ObjectId(req.params.ownerId)})
+	Hours_Schedules.find({
+		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
+	})
 		.populate("belongsTo", "name email phone storeName")
 		.exec((err, data) => {
 			if (err) {
@@ -190,7 +192,7 @@ exports.listScheduledOrdersGeneral = (req, res) => {
 	sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 90);
 
 	ScheduleOrder.find({
-		createdAt: {$gte: sixtyDaysAgo},
+		createdAt: { $gte: sixtyDaysAgo },
 		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
 	})
 		.populate("user", "_id name email service scheduledTime")
@@ -256,14 +258,14 @@ exports.updateOrderStatus = (req, res, next) => {
 	};
 
 	ScheduleOrder.findOneAndUpdate(
-		{_id: req.body.scheduleorderId},
+		{ _id: req.body.scheduleorderId },
 		{
 			$set: {
 				status: req.body.status,
 				updatedByUser: req.body.updatedByUser,
 			},
 		},
-		{new: true},
+		{ new: true },
 		async (err, order) => {
 			if (err) {
 				console.error("Error to update order status", err, req.body);
@@ -304,7 +306,7 @@ exports.updateOrderStatus = (req, res, next) => {
 								activePoints: req.order.LoyaltyPoints * -1,
 							},
 						},
-						{new: true}
+						{ new: true }
 					);
 
 					console.log(user, "response to update status");
@@ -333,7 +335,7 @@ exports.listScheduledOrders2 = (req, res) => {
 	sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 90);
 
 	ScheduleOrder.find({
-		createdAt: {$gte: sixtyDaysAgo},
+		createdAt: { $gte: sixtyDaysAgo },
 		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
 	})
 		.populate("user", "_id name email role activeUser")
@@ -353,7 +355,7 @@ exports.listScheduledOrdersStore = (req, res) => {
 	sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 90);
 
 	ScheduleOrder.find({
-		createdAt: {$gte: sixtyDaysAgo},
+		createdAt: { $gte: sixtyDaysAgo },
 		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
 	})
 		.populate("user", "_id name email role activeUser")
@@ -373,7 +375,7 @@ exports.listScheduledOrders3 = (req, res) => {
 	sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 90);
 
 	ScheduleOrder.find({
-		createdAt: {$gte: sixtyDaysAgo},
+		createdAt: { $gte: sixtyDaysAgo },
 		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
 	})
 		.populate("user", "_id name email service scheduledTime")
@@ -396,7 +398,7 @@ exports.listScheduledOrders3 = (req, res) => {
 exports.updateChosenEmployeeForAnOrder = (req, res) => {
 	// console.log(req.body, "this is the new employee update for el zeft");
 	ScheduleOrder.updateOne(
-		{_id: req.body.orderId},
+		{ _id: req.body.orderId },
 		{
 			$set: {
 				employees: [
@@ -541,14 +543,14 @@ exports.updateOrderStatusEmployee = (req, res, next) => {
 	};
 
 	ScheduleOrder.findOneAndUpdate(
-		{_id: req.body.scheduleorderId},
+		{ _id: req.body.scheduleorderId },
 		{
 			$set: {
 				status: req.body.status,
 				updatedByUser: req.body.updatedByUser,
 			},
 		},
-		{new: true},
+		{ new: true },
 		async (err, order) => {
 			if (err) {
 				console.error("Error to update order status", err, req.body);
@@ -589,7 +591,7 @@ exports.updateOrderStatusEmployee = (req, res, next) => {
 								activePoints: req.order.LoyaltyPoints * -1,
 							},
 						},
-						{new: true}
+						{ new: true }
 					);
 
 					console.log(user, "response to update status");
@@ -732,14 +734,14 @@ exports.updateOrderStatusUser = (req, res, next) => {
 	};
 
 	ScheduleOrder.findOneAndUpdate(
-		{_id: req.body.scheduleorderId},
+		{ _id: req.body.scheduleorderId },
 		{
 			$set: {
 				status: req.body.status,
 				updatedByUser: req.body.updatedByUser,
 			},
 		},
-		{new: true},
+		{ new: true },
 		async (err, order) => {
 			if (err) {
 				console.error("Error to update order status", err, req.body);
@@ -780,7 +782,7 @@ exports.updateOrderStatusUser = (req, res, next) => {
 								activePoints: req.order.LoyaltyPoints * -1,
 							},
 						},
-						{new: true}
+						{ new: true }
 					);
 
 					console.log(user, "response to update status");
@@ -893,7 +895,7 @@ exports.read3 = (req, res) => {
 exports.addingStylistComment = (req, res) => {
 	console.log(req.body, "From Stylist Comment");
 	ScheduleOrder.updateOne(
-		{_id: req.body.scheduleorderId},
+		{ _id: req.body.scheduleorderId },
 		{
 			$set: {
 				commentsByStylist: req.body.commentsByStylist,
@@ -915,9 +917,9 @@ exports.listBossAdmin = (req, res) => {
 		{
 			$group: {
 				_id: "$belongsTo",
-				totalAppointments: {$sum: 1},
-				totalAmount: {$sum: "$amount"},
-				totalOnlineServicesFees: {$sum: "$onlineServicesFees"},
+				totalAppointments: { $sum: 1 },
+				totalAmount: { $sum: "$amount" },
+				totalOnlineServicesFees: { $sum: "$onlineServicesFees" },
 			},
 		},
 	]).exec((err, data) => {
@@ -940,9 +942,9 @@ exports.listBossAdminNotPaid = (req, res) => {
 		{
 			$group: {
 				_id: "$belongsTo",
-				totalAppointments: {$sum: 1},
-				totalAmount: {$sum: "$amount"},
-				totalOnlineServicesFees: {$sum: "$onlineServicesFees"},
+				totalAppointments: { $sum: 1 },
+				totalAmount: { $sum: "$amount" },
+				totalOnlineServicesFees: { $sum: "$onlineServicesFees" },
 			},
 		},
 	]).exec((err, data) => {
@@ -975,13 +977,13 @@ exports.schedulesNotPaidForSpecificStore = (req, res) => {
 };
 
 exports.updateSharePaidStatus = (req, res) => {
-	const {idsToUpdate} = req.body; // this should be an array of _id values
+	const { idsToUpdate } = req.body; // this should be an array of _id values
 	ScheduleOrder.updateMany(
 		{
-			_id: {$in: idsToUpdate},
+			_id: { $in: idsToUpdate },
 		},
 		{
-			$set: {sharePaid: true},
+			$set: { sharePaid: true },
 		}
 	)
 		.then((result) => {

@@ -1,6 +1,6 @@
 /** @format */
 
-const {ScheduleOrder} = require("./models/scheduleOrder");
+const { ScheduleOrder } = require("./models/scheduleOrder");
 require("dotenv").config();
 const orderStatusSMS = require("twilio")(
 	process.env.TWILIO_ACCOUNT_SID,
@@ -51,7 +51,7 @@ exports.scheduler = (req, res) => {
 				);
 				ordersModified.map((i) => {
 					ScheduleOrder.updateOne(
-						{_id: i._id},
+						{ _id: i._id },
 						{
 							$set: {
 								reminderTextSend: true,
