@@ -96,18 +96,18 @@ exports.create = (req, res) => {
 		var firstName = fullNameArray[0].trim();
 		orderStatusSMS.messages
 			.create({
-				from: "whatsapp:+19512591528",
+				from: "whatsapp:+201097542859",
 				body: `Hi ${firstName} - Your appointment was scheduled at (${
 					order.scheduledTime
 				}) on ${new Date(
 					order.scheduledDate
-				).toLocaleDateString()}. Please check your dashboard or call us at +19512591528 in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
+				).toLocaleDateString()}. Please check your dashboard or call us at +201097542859 in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
 				template: "appointment_confirmation",
 				appointment_confirmation: {
 					1: order.firstName,
 					2: order.scheduledTime,
 					3: new Date(order.scheduledDate).toLocaleDateString(),
-					4: "+19512591528",
+					4: "+201097542859",
 					5: BarbershopName,
 				},
 				to: `whatsapp:${smsData.phone}`,
@@ -483,17 +483,17 @@ exports.updateAppointment = (req, res) => {
 			var firstName = fullNameArray[0].trim();
 			orderStatusSMS.messages
 				.create({
-					from: "whatsapp:+19512591528",
+					from: "whatsapp:+201097542859",
 					body: `Hi ${firstName} - 
 				Your appointment with ${order.employees[0].employeeName} was updated. 
-				Please check your dashboard ${userDashboardLink} or call us 9099914386. 
+				Please check your dashboard ${userDashboardLink} or call us 201097542859. 
 				Thank you for choosing ${BarbershopName}.`,
 					template: "appointment_confirmation",
 					appointment_confirmation: {
 						1: order.firstName,
 						2: order.scheduledTime,
 						3: new Date(order.scheduledDate).toLocaleDateString(),
-						4: "+19512591528",
+						4: "+201097542859",
 						5: BarbershopName,
 					},
 					to: `whatsapp:${smsData.phone}`,
@@ -671,17 +671,17 @@ exports.updateAppointmentEmployee = (req, res) => {
 			var firstName = fullNameArray[0].trim();
 			orderStatusSMS.messages
 				.create({
-					from: "whatsapp:+19512591528",
+					from: "whatsapp:+201097542859",
 					body: `Hi ${firstName} - 
 				Your appointment with ${order.employees[0].employeeName} was updated. 
-				Please check your dashboard ${userDashboardLink} or call us 9099914386. 
+				Please check your dashboard ${userDashboardLink} or call us 201097542859. 
 				Thank you for choosing ${BarbershopName}.`,
 					template: "appointment_confirmation",
 					appointment_confirmation: {
 						1: order.firstName,
 						2: order.employees[0].employeeName,
 						3: userDashboardLink,
-						4: "+19099914386",
+						4: "+201097542859",
 						5: BarbershopName,
 					},
 					to: `whatsapp:${smsData.phone}`,
@@ -862,17 +862,17 @@ exports.updateAppointmentUser = (req, res) => {
 		var firstName = fullNameArray[0].trim();
 		orderStatusSMS.messages
 			.create({
-				from: "whatsapp:+19512591528",
+				from: "whatsapp:+201097542859",
 				body: `Hi ${firstName} - 
 				Your appointment with ${order.employees[0].employeeName} was updated. 
-				Please check your dashboard ${userDashboardLink} or call us 9099914386. 
+				Please check your dashboard ${userDashboardLink} or call us 201097542859. 
 				Thank you for choosing ${BarbershopName}.`,
 				template: "appointment_confirmation",
 				appointment_confirmation: {
 					1: order.firstName,
 					2: order.employees[0].employeeName,
 					3: userDashboardLink,
-					4: "+19099914386",
+					4: "+201097542859",
 					5: BarbershopName,
 				},
 				to: `whatsapp:${smsData.phone}`,

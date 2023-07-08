@@ -79,7 +79,7 @@ exports.signup = async (req, res) => {
 			//Whats App Message
 			orderStatusSMS.messages
 				.create({
-					from: "whatsapp:+19512591528",
+					from: "whatsapp:+201097542859",
 					body: `Hi ${firstName} - Your profile is under review now, Our team will let you know once your account is activated. This process takes between 2 to 3 days.
 				Thank you!`,
 					to: `whatsapp:+2${user.phone}`,
@@ -99,7 +99,7 @@ exports.signup = async (req, res) => {
 			//Whats App Message
 			orderStatusSMS.messages
 				.create({
-					from: "whatsapp:+19512591528",
+					from: "whatsapp:+201097542859",
 					body: `Hi ${firstName} - Your profile is under review now, Our team will let you know once your account is activated. This process takes between 2 to 3 days.
 				Thank you!`,
 					to: `whatsapp:+2${user.phone}`,

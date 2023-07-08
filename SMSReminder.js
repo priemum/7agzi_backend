@@ -86,7 +86,7 @@ exports.scheduler = (req, res) => {
 							var firstName = fullNameArray[0].trim();
 							orderStatusSMS.messages
 								.create({
-									from: "whatsapp:+19512591528",
+									from: "whatsapp:+201097542859",
 									body: `Hi ${firstName} - 
 											This is a friendly reminder... 
 											Your appointment with ${i.employees[0].employeeName} is today at ${i.scheduledTime}. 
