@@ -103,7 +103,10 @@ router.get("/generate-sitemap", async (req, res) => {
 
 	// Create a write stream to write the sitemap to a file
 	const writeStream = createWriteStream(
-		resolve(__dirname, "../../hairbrush_frontend/public/sitemap.xml")
+		resolve(
+			__dirname,
+			"/home/infiniteappsadmin/DreamProject/7agzi_frontend/public/sitemap.xml"
+		)
 	);
 
 	sitemapStream.pipe(writeStream).on("error", (e) => {
