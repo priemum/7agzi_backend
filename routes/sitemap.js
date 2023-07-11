@@ -106,7 +106,8 @@ router.get("/generate-sitemap", async (req, res) => {
 		resolve(
 			__dirname,
 			"/home/infiniteappsadmin/DreamProject/7agzi_frontend/public/sitemap.xml"
-		)
+		),
+		{ flags: "w" } // Set the 'w' flag to overwrite the existing file
 	);
 
 	sitemapStream.pipe(writeStream).on("error", (e) => {
