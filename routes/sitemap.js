@@ -96,34 +96,40 @@ router.get("/generate-sitemap", async (req, res) => {
 		hostname: process.env.CLIENT_URL, // fixed the hostname here
 	});
 
-	// Create a write stream to write the sitemap to a file
-	const writeStream = createWriteStream(
-		resolve(
-			__dirname,
-			"/home/infiniteappsadmin/DreamProject/7agzi_frontend/public/sitemap.xml"
-		),
-		{ flags: "w" } // Set the 'w' flag to overwrite the existing file
-	);
-
-	sitemapStream.pipe(writeStream).on("error", (e) => {
-		console.error(e);
-		res.status(500).end();
-	});
-
 	// Add URLs to the sitemap
 	for (let link of links) {
 		sitemapStream.write(link);
 	}
 
-	// End sitemap stream
 	sitemapStream.end();
 
-	// Wait for all writes to be flushed
-	streamToPromise(sitemapStream)
-		.then(() => writeStream.end())
-		.catch((err) => console.error(err));
+	// Convert the stream to a promise
+	const sitemapPromise = streamToPromise(sitemapStream);
 
-	res.send("Sitemap has been generated");
+	// Wait for the stream to be flushed and then write to the file
+	sitemapPromise
+		.then((sitemap) => {
+			const writeStream = createWriteStream(
+				resolve(
+					__dirname,
+					"/home/infiniteappsadmin/DreamProject/7agzi_frontend/public/sitemap.xml"
+				),
+				{ flags: "w" } // Set the 'w' flag to overwrite the existing file
+			);
+			sitemap.pipe(writeStream);
+			writeStream.on("error", (err) => {
+				console.error(err);
+				res.status(500).end();
+			});
+			writeStream.on("finish", () => {
+				console.log("Sitemap has been generated");
+				res.send("Sitemap has been generated");
+			});
+		})
+		.catch((err) => {
+			console.error(err);
+			res.status(500).end();
+		});
 });
 
 module.exports = router;
