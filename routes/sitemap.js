@@ -106,9 +106,10 @@ router.get("/generate-sitemap", async (req, res) => {
 	// Convert the stream to a promise
 	const sitemapPromise = streamToPromise(sitemapStream);
 
-	// Wait for the stream to be flushed and then write to the file
+	// Wait for the stream to be flushed and collect the XML content
 	sitemapPromise
 		.then((sitemap) => {
+			const xmlContent = sitemap.toString();
 			const writeStream = createWriteStream(
 				resolve(
 					__dirname,
@@ -116,7 +117,8 @@ router.get("/generate-sitemap", async (req, res) => {
 				),
 				{ flags: "w" } // Set the 'w' flag to overwrite the existing file
 			);
-			sitemap.pipe(writeStream);
+			writeStream.write(xmlContent, "utf-8");
+			writeStream.end();
 			writeStream.on("error", (err) => {
 				console.error(err);
 				res.status(500).end();
