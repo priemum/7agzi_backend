@@ -1,5 +1,3 @@
-// routes/sitemap.js
-
 const express = require("express");
 const router = express.Router();
 const { SitemapStream, streamToPromise } = require("sitemap");
@@ -36,21 +34,18 @@ router.get("/generate-sitemap", async (req, res) => {
 			changefreq: "yearly",
 			priority: 0.5,
 		},
-
 		{
 			url: "/contact",
 			lastmod: currentDate,
 			changefreq: "yearly",
 			priority: 0.5,
 		},
-
 		{
 			url: "/agent-guide",
 			lastmod: currentDate,
 			changefreq: "monthly",
 			priority: 0.5,
 		},
-
 		{
 			url: "/agents-signup-form",
 			lastmod: currentDate,
