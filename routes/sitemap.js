@@ -93,7 +93,7 @@ router.get("/generate-sitemap", async (req, res) => {
 
 	// Create a stream to pass to SitemapStream
 	const sitemapStream = new SitemapStream({
-		hostname: process.env.CLIENT_URL, // fixed the hostname here
+		hostname: "https://xlookpro.com", // fixed the hostname here
 	});
 
 	// Add URLs to the sitemap
@@ -111,10 +111,7 @@ router.get("/generate-sitemap", async (req, res) => {
 		.then((sitemap) => {
 			const xmlContent = sitemap.toString();
 			const writeStream = createWriteStream(
-				resolve(
-					__dirname,
-					"/home/infiniteappsadmin/DreamProject/7agzi_frontend/public/sitemap.xml"
-				),
+				resolve(__dirname, "../../hairbrush_frontend/public/sitemap.xml"),
 				{ flags: "w" } // Set the 'w' flag to overwrite the existing file
 			);
 			writeStream.write(xmlContent, "utf-8");

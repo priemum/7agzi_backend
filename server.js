@@ -43,9 +43,9 @@ const port = process.env.PORT || 8050;
 cron.schedule("0 */15 * * * *", scheduler);
 
 // Schedule the sitemap generation every 7 days
-cron.schedule("0 0 0 */7 * *", () => {
-	generateSitemap(null, null);
-});
+// cron.schedule("0 0 0 */7 * *", () => {
+// 	generateSitemap(null, null);
+// });
 
 app.listen(port, () => {
 	console.log(`Server is running on port ${port}`);
