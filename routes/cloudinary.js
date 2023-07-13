@@ -16,7 +16,7 @@ const {
 	uploadByStylist,
 	removeByStylist,
 } = require("../controllers/cloudinary");
-const {userById} = require("../controllers/user");
+const { userById } = require("../controllers/user");
 router.post(
 	"/admin/uploadimages/:userId",
 	requireSignin,
