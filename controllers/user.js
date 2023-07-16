@@ -437,6 +437,7 @@ exports.updateByBoss = (req, res) => {
 		userId,
 		agentPaid,
 		agentPaidPro,
+		agent,
 	} = req.body;
 
 	User.findOne({ _id: userId }, (err, user) => {
@@ -513,6 +514,10 @@ exports.updateByBoss = (req, res) => {
 
 		if (!agentPaidPro) {
 			user.agentPaidPro = agentPaidPro;
+		}
+
+		if (agent && agent.name) {
+			user.agent = agent;
 		}
 
 		user.save((err, updatedUser) => {

@@ -47,7 +47,7 @@ router.get("/generate-sitemap", async (req, res) => {
 			priority: 0.5,
 		},
 		{
-			url: "/agents-signup-form",
+			url: "/agents-signup-form2",
 			lastmod: currentDate,
 			changefreq: "monthly",
 			priority: 0.8,
