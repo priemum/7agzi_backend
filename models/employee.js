@@ -67,6 +67,11 @@ const employeeSchema = new mongoose.Schema(
 			type: Boolean,
 		},
 
+		employeeGender: {
+			type: String,
+			default: "No Gender",
+		},
+
 		likes: [{ type: ObjectId, ref: "User" }],
 		views: [],
 		viewsCount: {

@@ -119,6 +119,7 @@ exports.update = (req, res) => {
 	employee.description2 = req.body.employee.description2;
 	employee.activeEmployee = req.body.employee.activeEmployee;
 	employee.workingHours = req.body.employee.workingHours;
+	employee.employeeGender = req.body.employee.employeeGender;
 	employee.save((err, data) => {
 		if (err) {
 			return res.status(400).json({
