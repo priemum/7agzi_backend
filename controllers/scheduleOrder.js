@@ -2,9 +2,13 @@
 
 const { ScheduleOrder, EmployeeItem } = require("../models/scheduleOrder");
 const User = require("../models/user");
+const Employee = require("../models/employee");
+const StoreManagement = require("../models/storeManagement");
 const mongoose = require("mongoose");
 const fs = require("fs");
 const _ = require("lodash");
+// const moment = require("moment");
+const moment = require("moment-timezone");
 // sendgrid for email npm i @sendgrid/mail
 const sgMail = require("@sendgrid/mail");
 const SMS = require("../models/sms");
@@ -997,4 +1001,106 @@ exports.updateSharePaidStatus = (req, res) => {
 				details: err,
 			});
 		});
+};
+
+exports.firstAvailableTimeAndEmployee = async (req, res) => {
+	console.log(req.params.ownerId);
+
+	// Fetch store settings
+	const storeSettings = await StoreManagement.findOne({
+		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
+	});
+
+	if (!storeSettings) {
+		return res.status(400).json({
+			error: "Store settings not found",
+		});
+	}
+
+	// Fetch all the employees working in the store/belongsTo
+	const employees = await Employee.find({
+		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
+	});
+
+	// Initialize minAvailableTime and selectedEmployee
+	let minAvailableTime = moment.tz("Africa/Cairo").add(1, "years");
+	let selectedEmployee = null;
+
+	for (const employee of employees) {
+		let date = moment.tz("Africa/Cairo").startOf("day");
+
+		for (let day = 0; day < 4; day++, date.add(1, "days")) {
+			const dayName = date.format("dddd");
+
+			// Check if the store or the employee is closed on this day
+			if (
+				storeSettings.daysStoreClosed.includes(dayName) ||
+				!employee.workingDays.includes(dayName)
+			) {
+				continue;
+			}
+
+			// Find all orders for the employee scheduled for the current date
+			const orders = await ScheduleOrder.find({
+				employees: { $elemMatch: { _id: employee._id } },
+				scheduledDate: { $eq: date.toDate() },
+				sharePaid: false,
+				belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
+			}).sort("scheduledTime");
+
+			// First available time for the employee is the start of their working hours
+			let availableFrom = moment
+				.tz(date, "Africa/Cairo")
+				.add(employee.workingHours[0], "minutes");
+
+			if (day === 0 && availableFrom.isBefore(moment.tz("Africa/Cairo"))) {
+				availableFrom = moment.tz("Africa/Cairo");
+			}
+
+			for (const order of orders) {
+				const orderStart = moment
+					.tz(date, "Africa/Cairo")
+					.add(order.scheduledTime.start, "minutes");
+				const orderEnd = orderStart
+					.clone()
+					.add(order.serviceDetails.serviceTime, "minutes");
+
+				if (orderStart.isSameOrAfter(availableFrom)) {
+					break;
+				} else {
+					availableFrom = orderEnd;
+				}
+			}
+
+			// Check if this employee is available earlier than the previously selected one
+			if (availableFrom.isBefore(minAvailableTime)) {
+				// Check if the available time is within the employee's working hours
+				const workEnd = moment
+					.tz(date, "Africa/Cairo")
+					.add(employee.workingHours[1], "minutes");
+				if (availableFrom.isBefore(workEnd)) {
+					minAvailableTime = availableFrom;
+					selectedEmployee = employee;
+					break;
+				}
+			}
+		}
+	}
+
+	if (!selectedEmployee) {
+		return res.status(400).json({
+			error: "No employees are available",
+		});
+	}
+
+	const minutes = minAvailableTime.minutes();
+	const remainder = 15 - (minutes % 15);
+	const roundedTime = minAvailableTime.add(remainder, "minutes");
+
+	res.json({
+		employee: selectedEmployee,
+		availableTime: minAvailableTime.format(),
+		EgyptDate: roundedTime.format("YYYY-MM-DD"),
+		EgyptTime: roundedTime.format("HH:mm"),
+	});
 };

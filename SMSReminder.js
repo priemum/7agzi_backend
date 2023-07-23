@@ -2,24 +2,17 @@
 
 const { ScheduleOrder } = require("./models/scheduleOrder");
 require("dotenv").config();
+const moment = require("moment-timezone");
 const orderStatusSMS = require("twilio")(
 	process.env.TWILIO_ACCOUNT_SID,
 	process.env.TWILIO_AUTH_TOKEN
 );
 const SMS = require("./models/sms");
 
-const BarbershopName = "Our Store";
-const BarbershopWebsite = "https://barbershopdemo.infinite-apps.com";
-const userDashboardLink = "https://barbershopdemo.infinite-apps.com/dashboard";
-const contactusPageLink = "https://barbershopdemo.infinite-apps.com/contact";
-const supportEmail = "info@barbershop.com";
-const fromEmail = "noreply@infinite-apps.com";
-const defualtEmail = "ahmed.abdelrazak@infinite-apps.com";
-const phoneNumber1 = "(999) 222-1111";
-const phoneNumber2 = "(999) 222-3322";
-const shopAddress = "123 main street, LA, CA";
-const shopLogo =
-	"https://res.cloudinary.com/infiniteapps/image/upload/v1633579688/Test/1633579689202.jpg";
+const BarbershopName = "XLOOK";
+const BarbershopWebsite = "https://xlookpro.com";
+const userDashboardLink = "https://xlookpro.com/dashboard";
+const contactusPageLink = "https://xlookpro.com/contact";
 
 exports.scheduler = (req, res) => {
 	ScheduleOrder.find()
@@ -31,19 +24,18 @@ exports.scheduler = (req, res) => {
 				});
 			}
 
-			var d = new Date();
-			var hoursNow = d.getHours();
-			// var todaysDay = d.getDate();
-			// var todaysMonth = d.getMonth() + 1;
-			// var todaysMinutes = d.getMinutes();
+			var currentMoment = moment().tz("Africa/Cairo");
+			var hoursNow = currentMoment.hours();
 
-			var ordersModified = orders.filter(
-				(i) =>
-					new Date(i.scheduledDate).setHours(0, 0, 0, 0) ===
-						new Date().setHours(0, 0, 0, 0) &&
-					i.reminderTextSend === false &&
-					new Date(i.scheduleStartsAt).getHours() - 1 === hoursNow
-			);
+			var ordersModified = orders.filter((i) => {
+				const scheduledDate = moment(i.scheduledDate).tz("Africa/Cairo");
+				return (
+					scheduledDate.isSame(currentMoment, "day") &&
+					!i.reminderTextSend &&
+					moment(i.scheduleStartsAt).tz("Africa/Cairo").hours() === hoursNow + 1
+				);
+			});
+
 			if (ordersModified.length > 0) {
 				console.log(
 					ordersModified.length,
@@ -79,19 +71,16 @@ exports.scheduler = (req, res) => {
 								}
 							});
 
-							//
-							//
-							//Whats App Message
 							var fullNameArray = i.scheduledByUserName.split(" ");
 							var firstName = fullNameArray[0].trim();
 							orderStatusSMS.messages
 								.create({
 									from: "whatsapp:+201097542859",
 									body: `Hi ${firstName} - 
-											This is a friendly reminder... 
-											Your appointment with ${i.employees[0].employeeName} is today at ${i.scheduledTime}. 
-											Please check your dashboard ${userDashboardLink} in case you would like to make any changes. 
-											Thank you for choosing ${BarbershopName}.`,
+                                            This is a friendly reminder... 
+                                            Your appointment with ${i.employees[0].employeeName} is today at ${i.scheduledTime}. 
+                                            Please check your dashboard ${userDashboardLink} in case you would like to make any changes. 
+                                            Thank you for choosing ${BarbershopName}.`,
 									to: `whatsapp:+2${smsData.phone}`,
 								})
 								.then((message) =>
@@ -100,9 +89,6 @@ exports.scheduler = (req, res) => {
 									)
 								)
 								.catch((err) => console.log(err));
-							//End of Whats App Message
-							//
-							//
 						}
 					);
 				});

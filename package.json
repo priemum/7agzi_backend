@@ -24,6 +24,8 @@
 		"google-auth-library": "^7.10.0",
 		"jsonwebtoken": "^8.5.1",
 		"lodash": "^4.17.21",
+		"moment": "^2.29.4",
+		"moment-timezone": "^0.5.43",
 		"mongoose": "^6.0.10",
 		"morgan": "^1.10.0",
 		"node-cron": "^3.0.0",

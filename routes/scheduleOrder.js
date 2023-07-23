@@ -41,6 +41,7 @@ const {
 	listBossAdminNotPaid,
 	schedulesNotPaidForSpecificStore,
 	updateSharePaidStatus,
+	firstAvailableTimeAndEmployee,
 } = require("../controllers/scheduleOrder");
 // const { decreaseQuantity } = require("../controllers/employee");
 
@@ -231,6 +232,11 @@ router.put(
 	isAuth,
 	isBoss,
 	updateSharePaidStatus
+);
+
+router.get(
+	"/first-available-appointment-time/:ownerId",
+	firstAvailableTimeAndEmployee
 );
 
 router.param("userId", userById);
