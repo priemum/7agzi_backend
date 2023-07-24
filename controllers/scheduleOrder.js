@@ -530,7 +530,7 @@ exports.updateOrderStatusEmployee = (req, res, next) => {
 		) {
 			const smsData = {
 				user: req.order.user._id,
-				phone: `+1${req.order.phone}`,
+				phone: `+2${req.order.phone}`,
 				text: `Hi ${req.order.scheduledByUserName} - \nThank you for choosing ${BarbershopName}, Your payment was successfully received.\nWe are looking forward to seeing you again\n ${BarbershopName}`,
 				belongsTo: req.order.belongsTo,
 			};
@@ -538,7 +538,7 @@ exports.updateOrderStatusEmployee = (req, res, next) => {
 		} else {
 			const smsData = {
 				user: req.order.user._id,
-				phone: `+1${req.order.phone}`,
+				phone: `+2${req.order.phone}`,
 				text: `Hi ${req.order.scheduledByUserName} - \nYour Appointment Status was changed, Please contact us or call in case you don't know about those changes. \n Thank you for choosing ${BarbershopName}`,
 				belongsTo: req.order.belongsTo,
 			};
@@ -721,7 +721,7 @@ exports.updateOrderStatusUser = (req, res, next) => {
 		) {
 			const smsData = {
 				user: req.order.user._id,
-				phone: `+1${req.order.phone}`,
+				phone: `+2${req.order.phone}`,
 				text: `Hi ${req.order.scheduledByUserName} - \nThank you for choosing ${BarbershopName}, Your payment was successfully received.\nWe are looking forward to seeing you again\n ${BarbershopName}`,
 				belongsTo: req.order.belongsTo,
 			};
@@ -729,7 +729,7 @@ exports.updateOrderStatusUser = (req, res, next) => {
 		} else {
 			const smsData = {
 				user: req.order.user._id,
-				phone: `+1${req.order.phone}`,
+				phone: `+2${req.order.phone}`,
 				text: `Hi ${req.order.scheduledByUserName} - \nYour Appointment Status was changed, Please contact us or call in case you don't know about those changes. \n Thank you for choosing ${BarbershopName}`,
 				belongsTo: req.order.belongsTo,
 			};

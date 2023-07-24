@@ -218,7 +218,7 @@ exports.getStoredPaymentData = (req, res) => {
 };
 
 exports.getSubscriptionData = (req, res) => {
-	const {subscriptionId} = req.params;
+	const { subscriptionId } = req.params;
 
 	gateway.subscription.find(subscriptionId, (err, subscription) => {
 		if (err) {
