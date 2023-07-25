@@ -25,14 +25,20 @@ exports.scheduler = (req, res) => {
 			}
 
 			var currentMoment = moment().tz("Africa/Cairo");
+			var minutesNow = currentMoment.minutes();
 			var hoursNow = currentMoment.hours();
 
 			var ordersModified = orders.filter((i) => {
 				const scheduledDate = moment(i.scheduledDate).tz("Africa/Cairo");
+				const scheduledTime = moment(i.scheduledTime, "HH:mm").tz(
+					"Africa/Cairo"
+				);
+
 				return (
 					scheduledDate.isSame(currentMoment, "day") &&
 					!i.reminderTextSend &&
-					moment(i.scheduleStartsAt).tz("Africa/Cairo").hours() === hoursNow + 1
+					scheduledTime.hours() === hoursNow &&
+					scheduledTime.minutes() - 30 <= minutesNow
 				);
 			});
 

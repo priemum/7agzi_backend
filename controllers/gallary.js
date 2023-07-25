@@ -60,6 +60,7 @@ exports.remove = (req, res) => {
 };
 
 exports.list = (req, res) => {
+	console.log(req.params.ownerId, "req.params.ownerId");
 	Gallary.find({ belongsTo: mongoose.Types.ObjectId(req.params.ownerId) })
 		.populate("belongsTo", "_id name email phone storeName")
 		.exec((err, data) => {

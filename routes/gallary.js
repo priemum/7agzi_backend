@@ -17,7 +17,7 @@ const {
 
 router.get("/gallary/:gallaryId", read);
 
-router.post("/gallary/create/:userId", requireSignin, isAuth, isAdmin, create);
+router.post("/gallary/create/:userId", requireSignin, isAuth, create);
 
 router.put(
 	"/gallary/:gallaryId/:userId",
@@ -34,7 +34,7 @@ router.delete(
 	remove
 );
 
-router.get("/gallary/:ownerId", list);
+router.get("/gallary/list/owner/:ownerId", list);
 router.get("/gallary/list/combined", listCobmined);
 
 router.param("userId", userById);

@@ -7,7 +7,6 @@ const cors = require("cors");
 const { readdirSync } = require("fs");
 const cron = require("node-cron");
 const { scheduler } = require("./SMSReminder");
-const { generateSitemap } = require("./routes/sitemap");
 
 require("dotenv").config();
 // app
