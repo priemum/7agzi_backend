@@ -2,12 +2,7 @@
 
 const express = require("express");
 const router = express.Router();
-const {
-	requireSignin,
-	isAuth,
-	isAdmin,
-	isEmployee,
-} = require("../controllers/auth");
+const { requireSignin, isAuth } = require("../controllers/auth");
 const {
 	upload,
 	remove,
@@ -17,35 +12,21 @@ const {
 	removeByStylist,
 } = require("../controllers/cloudinary");
 const { userById } = require("../controllers/user");
-router.post(
-	"/admin/uploadimages/:userId",
-	requireSignin,
-	isAuth,
-	isAdmin,
-	upload
-);
+router.post("/admin/uploadimages/:userId", requireSignin, isAuth, upload);
 
 router.post(
 	"/stylist/uploadimages/:userId",
 	requireSignin,
 	isAuth,
-	isEmployee,
 	uploadByStylist
 );
 
-router.post(
-	"/admin/removeimage/:userId",
-	requireSignin,
-	isAuth,
-	isAdmin,
-	remove
-);
+router.post("/admin/removeimage/:userId", requireSignin, isAuth, remove);
 
 router.post(
 	"/stylist/removeimage/:userId",
 	requireSignin,
 	isAuth,
-	isEmployee,
 	removeByStylist
 );
 
