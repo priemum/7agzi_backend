@@ -17,9 +17,15 @@ const {
 
 router.get("/service/:serviceId", read);
 
-router.post("/service/create/:userId", requireSignin, isAuth, create);
+router.post("/service/create/:userId", requireSignin, isAuth, isAdmin, create);
 
-router.put("/service/:serviceId/:userId", requireSignin, isAuth, update);
+router.put(
+	"/service/:serviceId/:userId",
+	requireSignin,
+	isAuth,
+	isAdmin,
+	update
+);
 router.delete(
 	"/service/:serviceId/:userId",
 	requireSignin,
