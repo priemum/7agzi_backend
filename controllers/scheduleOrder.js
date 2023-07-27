@@ -1006,10 +1006,10 @@ exports.updateSharePaidStatus = (req, res) => {
 exports.firstAvailableTimeAndEmployee = async (req, res) => {
 	console.log(req.params.ownerId);
 
-	// Fetch store settings
+	// Fetch the latest store settings
 	const storeSettings = await StoreManagement.findOne({
 		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
-	});
+	}).sort({ createdAt: "desc" }); // Fetch the latest document by sorting in descending order on createdAt field
 
 	if (!storeSettings) {
 		return res.status(400).json({

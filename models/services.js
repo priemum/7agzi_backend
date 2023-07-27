@@ -21,6 +21,14 @@ const servicesSchema = new mongoose.Schema(
 			trim: true,
 			lowercase: true,
 		},
+
+		bundleServicesAdded: {
+			type: Array,
+			trim: true,
+			lowercase: true,
+			default: [],
+		},
+
 		serviceDescriptionOtherLanguage: {
 			type: Array,
 			trim: true,

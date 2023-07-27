@@ -50,6 +50,7 @@ exports.update = (req, res) => {
 	service.catchyPhrase = req.body.catchyPhrase;
 	service.catchyPhraseOtherLanguage = req.body.catchyPhraseOtherLanguage;
 	service.bundleService = req.body.bundleService;
+	service.bundleServicesAdded = req.body.bundleServicesAdded;
 	service.save((err, data) => {
 		if (err) {
 			return res.status(400).json({
