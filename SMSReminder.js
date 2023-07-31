@@ -29,7 +29,10 @@ exports.scheduler = (req, res) => {
 			var hoursNow = currentMoment.hours();
 
 			var ordersModified = orders.filter((i) => {
-				const scheduledDate = moment(i.scheduledDate).tz("Africa/Cairo");
+				// convert the date string to ISO format
+				const scheduledDate = moment(i.scheduledDate, "MM/DD/YYYY").tz(
+					"Africa/Cairo"
+				);
 				const scheduledTime = moment(i.scheduledTime, "HH:mm").tz(
 					"Africa/Cairo"
 				);
