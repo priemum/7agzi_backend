@@ -4,14 +4,29 @@ const braintree = require("braintree");
 
 require("dotenv").config();
 
-var gateway = new braintree.BraintreeGateway({
-	environment: braintree.Environment.Sandbox, // Production Sandbox
-	merchantId: process.env.BRAINTREE_MERCHANT_ID,
-	publicKey: process.env.BRAINTREE_PUBLIC_KEY,
-	privateKey: process.env.BRAINTREE_PRIVATE_KEY,
-});
+const getBraintreeGateway = (country) => {
+	const merchantId =
+		country === "egypt"
+			? process.env.BRAINTREE_MERCHANT_ID_EGP
+			: process.env.BRAINTREE_MERCHANT_ID;
+
+	const publicKey =
+		country === "egypt"
+			? process.env.BRAINTREE_PUBLIC_KEY_EGP
+			: process.env.BRAINTREE_PUBLIC_KEY;
+
+	return new braintree.BraintreeGateway({
+		environment: braintree.Environment.Production, // Production Sandbox
+		merchantId: merchantId,
+		publicKey: publicKey,
+		privateKey: process.env.BRAINTREE_PRIVATE_KEY,
+	});
+};
 
 exports.generateToken = (req, res) => {
+	let countryFromClient = req.params.country.toLowerCase(); // You may need to adjust how you get the country depending on your implementation
+	let gateway = getBraintreeGateway(countryFromClient);
+
 	gateway.clientToken.generate({}, function (err, response) {
 		if (err) {
 			console.log(err, "err from braintree");
@@ -23,6 +38,8 @@ exports.generateToken = (req, res) => {
 };
 
 exports.processPayment = (req, res) => {
+	let gateway = getBraintreeGateway("US");
+
 	let nonceFromTheClient = req.body.paymentMethodNonce;
 	let amountFromTheClient = req.body.amount;
 	// charge
@@ -47,6 +64,10 @@ exports.processPayment = (req, res) => {
 exports.processPaymentAndStore = (req, res) => {
 	let nonceFromTheClient = req.body.paymentMethodNonce;
 	let amountFromTheClient = req.body.amount;
+	let countryFromClient = req.body.country;
+
+	console.log(countryFromClient, "countryFromClient");
+	let gateway = getBraintreeGateway(countryFromClient);
 
 	// charge
 	gateway.transaction.sale(
@@ -62,7 +83,6 @@ exports.processPaymentAndStore = (req, res) => {
 			if (error) {
 				res.status(500).json(error);
 			} else {
-				// console.log(result, "Pay and Store Token");
 				res.json(result);
 			}
 		}
@@ -71,7 +91,10 @@ exports.processPaymentAndStore = (req, res) => {
 
 exports.retriggerPayment = (req, res) => {
 	let amountFromTheClient = req.body.amount; // this will be the amount you calculate
-	let paymentMethodToken = "90qvwbwg"; // replace this with the token you stored
+	let paymentMethodToken = req.body.paymentMethodToken; // replace this with the token you stored
+	let countryFromClient = req.body.country;
+
+	let gateway = getBraintreeGateway(countryFromClient);
 
 	console.log(req.body, "Retrigger");
 
@@ -95,13 +118,11 @@ exports.retriggerPayment = (req, res) => {
 };
 
 exports.processSubscription = (req, res) => {
-	// console.log(
-	// 	req.body,
-	// 	"this is req.body for subscription from braintreeController"
-	// );
-
 	let nonceFromTheClient = req.body.paymentMethodNonce;
 	let amountFromTheClient = req.body.amount;
+	let countryFromClient = req.body.country;
+
+	let gateway = getBraintreeGateway(countryFromClient);
 
 	// charge
 	gateway.customer.create(
@@ -129,16 +150,10 @@ exports.processSubscription = (req, res) => {
 						(err, result) => {
 							console.log(err, "from processing the subscription");
 							if (err) return res.status(500).send(error);
-							//////
-							// console.log(result, "result Only From Subscription");
-
-							//////
-
 							res.status(201).json({
 								result: "success",
 								subscription: result.subscription,
 							});
-							/////
 						}
 					);
 				}
@@ -150,6 +165,9 @@ exports.processSubscription = (req, res) => {
 exports.updateCard = (req, res) => {
 	let paymentMethodNonce = req.body.paymentMethodNonce;
 	let paymentMethodToken = req.body.paymentMethodToken;
+	let countryFromClient = req.body.country;
+
+	let gateway = getBraintreeGateway(countryFromClient);
 
 	gateway.paymentMethod.update(
 		paymentMethodToken,
@@ -173,6 +191,10 @@ exports.updateCard = (req, res) => {
 exports.updateSubscriptionCard = (req, res) => {
 	let paymentMethodToken = req.body.paymentMethodToken;
 	let subscriptionId = req.body.subscriptionId;
+	let countryFromClient = req.body.country;
+
+	let gateway = getBraintreeGateway(countryFromClient);
+
 	gateway.paymentMethod.update(
 		paymentMethodToken,
 		{
@@ -202,6 +224,9 @@ exports.updateSubscriptionCard = (req, res) => {
 
 exports.getStoredPaymentData = (req, res) => {
 	let paymentMethodToken = req.params.token;
+	let countryFromClient = req.body.country; // You may need to adjust how you get the country depending on your implementation
+
+	let gateway = getBraintreeGateway(countryFromClient);
 
 	gateway.paymentMethod.find(paymentMethodToken, function (err, paymentMethod) {
 		if (err) {
@@ -219,6 +244,9 @@ exports.getStoredPaymentData = (req, res) => {
 
 exports.getSubscriptionData = (req, res) => {
 	const { subscriptionId } = req.params;
+	let countryFromClient = req.body.country; // You may need to adjust how you get the country depending on your implementation
+
+	let gateway = getBraintreeGateway(countryFromClient);
 
 	gateway.subscription.find(subscriptionId, (err, subscription) => {
 		if (err) {

@@ -20,7 +20,12 @@ const {
 } = require("../controllers/braintree");
 
 //(used)
-router.get("/braintree/getToken/:userId", requireSignin, isAuth, generateToken);
+router.get(
+	"/braintree/getToken/:country/:userId",
+	requireSignin,
+	isAuth,
+	generateToken
+);
 
 router.post(
 	"/braintree/payment/:userId",

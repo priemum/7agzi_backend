@@ -201,6 +201,7 @@ exports.signin = (req, res) => {
 			subscriptionId,
 			agent,
 			paidAgent,
+			storeCountry,
 		} = user;
 		return res.json({
 			token,
@@ -227,6 +228,7 @@ exports.signin = (req, res) => {
 				subscriptionId,
 				agent,
 				paidAgent,
+				storeCountry,
 			},
 		});
 	});
