@@ -2,6 +2,7 @@
 
 const Services = require("../models/services");
 const mongoose = require("mongoose");
+const Employee = require("../models/employee");
 
 exports.servicesById = (req, res, next, id) => {
 	Services.findById(id).exec((err, service) => {
@@ -108,5 +109,80 @@ exports.listCobmined = (req, res) => {
 				});
 			}
 			res.json(data);
+		});
+};
+
+exports.findUniqueActiveServices = (req, res) => {
+	const ownerId = req.params.ownerId;
+
+	Employee.find({ belongsTo: mongoose.Types.ObjectId(ownerId) })
+		.populate(
+			"belongsTo",
+			"_id name phone storeName storeCountry storeGovernorate"
+		)
+		.populate(
+			"services",
+			"serviceName serviceNameOtherLanguage activeService belongsTo"
+		)
+		.then((employees) => {
+			if (!employees.length) {
+				return res.status(400).json({ error: "No employees found." });
+			}
+
+			// Flatten the services array across all employees
+			let allServices = [].concat(...employees.map((emp) => emp.services));
+
+			// Filter only active services
+			let activeServices = allServices.filter(
+				(service) => service.activeService
+			);
+
+			// Filter for unique services
+			let uniqueServices = activeServices.filter(
+				(service, index, self) =>
+					index ===
+					self.findIndex(
+						(s) =>
+							s.serviceName === service.serviceName &&
+							s.belongsTo._id.toString() === service.belongsTo._id.toString()
+					)
+			);
+
+			return res.json(uniqueServices);
+		})
+		.catch((err) => {
+			console.log(err);
+			return res.status(500).json({ error: err.message });
+		});
+};
+
+exports.findUniqueCustomerTypes = (req, res) => {
+	const ownerId = req.params.ownerId;
+
+	Employee.find({ belongsTo: mongoose.Types.ObjectId(ownerId) })
+		.populate("services", "customerType customerTypeOtherLanguage belongsTo")
+		.then((employees) => {
+			if (!employees.length) {
+				return res.status(400).json({ error: "No employees found." });
+			}
+
+			// Flatten the services array across all employees
+			let allServices = [].concat(...employees.map((emp) => emp.services));
+
+			// Filter for unique customerTypes
+			let uniqueCustomerTypes = allServices.filter(
+				(service, index, self) =>
+					index ===
+					self.findIndex(
+						(s) =>
+							s.customerType === service.customerType &&
+							s.belongsTo._id.toString() === service.belongsTo._id.toString()
+					)
+			);
+
+			return res.json(uniqueCustomerTypes);
+		})
+		.catch((err) => {
+			return res.status(500).json({ error: err.message });
 		});
 };

@@ -13,6 +13,8 @@ const {
 	update,
 	list,
 	listCobmined,
+	findUniqueActiveServices,
+	findUniqueCustomerTypes,
 } = require("../controllers/services");
 
 router.get("/service/:serviceId", read);
@@ -36,6 +38,8 @@ router.delete(
 
 router.get("/services/:ownerId", list);
 router.get("/services/list/combined", listCobmined);
+router.get("/findUniqueActiveServices/:ownerId", findUniqueActiveServices);
+router.get("/findUniqueCustomerTypes/:ownerId", findUniqueCustomerTypes);
 
 router.param("userId", userById);
 router.param("serviceId", servicesById);

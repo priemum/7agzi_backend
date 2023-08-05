@@ -42,16 +42,17 @@ const {
 	schedulesNotPaidForSpecificStore,
 	updateSharePaidStatus,
 	firstAvailableTimeAndEmployee,
+	findFirstAvailableAppointment,
+	employeeFreeSlots,
 } = require("../controllers/scheduleOrder");
 // const { decreaseQuantity } = require("../controllers/employee");
 
 router.post(
 	"/scheduled-order/create/:userId",
-	requireSignin,
-	isAuth,
-	addOrderToUserHistory,
+	// requireSignin,
+	// isAuth,
+	// addOrderToUserHistory,
 	// decreaseQuantity,
-	increasePoints,
 	create
 );
 
@@ -237,6 +238,16 @@ router.put(
 router.get(
 	"/first-available-appointment-time/:ownerId",
 	firstAvailableTimeAndEmployee
+);
+
+router.get(
+	"/findFirstAvailableAppointment/:serviceName/:customerType/:date/:country/:ownerId",
+	findFirstAvailableAppointment
+);
+
+router.get(
+	"/employee-schedule/:employeeId/:customerType/:services/:date/:ownerId",
+	employeeFreeSlots
 );
 
 router.param("userId", userById);

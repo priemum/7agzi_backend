@@ -90,7 +90,7 @@ exports.scheduler = (req, res) => {
                                             Your appointment with ${i.employees[0].employeeName} is today at ${i.scheduledTime}. 
                                             Please check your dashboard ${userDashboardLink} in case you would like to make any changes. 
                                             Thank you for choosing ${BarbershopName}.`,
-									to: `whatsapp:+2${smsData.phone}`,
+									to: `whatsapp:${smsData.phone}`,
 								})
 								.then((message) =>
 									console.log(

@@ -1,9 +1,10 @@
 /** @format */
 
-const { ScheduleOrder, EmployeeItem } = require("../models/scheduleOrder");
+const { ScheduleOrder } = require("../models/scheduleOrder");
 const User = require("../models/user");
 const Employee = require("../models/employee");
 const StoreManagement = require("../models/storeManagement");
+const Services = require("../models/services");
 const mongoose = require("mongoose");
 const fs = require("fs");
 const _ = require("lodash");
@@ -65,6 +66,7 @@ exports.create = (req, res) => {
 	};
 	order.save((error, data) => {
 		if (error) {
+			console.log(error, "error");
 			return res.status(400).json({
 				error: "Error Creating an order",
 			});
@@ -433,9 +435,12 @@ exports.read = (req, res) => {
 exports.updateAppointment = (req, res) => {
 	const order = req.order;
 	const orderDetails = req.body.orderDetails;
-	// console.log(req.body.orderDetails);
+	// console.log(req.body.scheduledTime, "req.body.scheduledTime");
+	// console.log(order.scheduledTime, "             order.scheduledTime");
+
 	order.employees = req.body.employees;
 	order.scheduledByUserEmail = req.body.scheduledByUserEmail;
+	order.scheduledByUserName = req.body.scheduledByUserName;
 	order.amount = req.body.amount;
 	order.paidTip = req.body.paidTip;
 	order.tipPercentage = req.body.tipPercentage;
@@ -443,8 +448,11 @@ exports.updateAppointment = (req, res) => {
 	order.serviceDuration = req.body.serviceDuration;
 	order.scheduleEndsAt = req.body.scheduleEndsAt;
 	order.scheduledDate = req.body.scheduledDate;
+	order.scheduledTime = req.body.scheduledTime;
 	order.service = req.body.service;
 	order.serviceDetails = req.body.serviceDetails;
+	order.serviceDetailsArray = req.body.serviceDetailsArray;
+	order.employeeAvailability = req.body.employeeAvailability;
 	order.scheduleStartsAt = req.body.scheduleStartsAt;
 	order.minLoyaltyPointsForAward = req.body.minLoyaltyPointsForAward;
 	order.onlineServicesFees = req.body.onlineServicesFees;
@@ -452,7 +460,6 @@ exports.updateAppointment = (req, res) => {
 	order.scheduleAppointmentPhoto = req.body.scheduleAppointmentPhoto;
 	order.discountedAmount = req.body.discountedAmount;
 	order.discountedPercentage = req.body.discountedPercentage;
-	order.scheduledTime = req.body.scheduledTime;
 	order.sharePaid = req.body.sharePaid;
 	order.updatedByUser = req.body.updatedByUser;
 
@@ -624,6 +631,7 @@ exports.updateAppointmentEmployee = (req, res) => {
 	const orderDetails = req.body.orderDetails;
 	order.employees = req.body.employees;
 	order.scheduledByUserEmail = req.body.scheduledByUserEmail;
+	order.scheduledByUserName = req.body.scheduledByUserName;
 	order.amount = req.body.amount;
 	order.paidTip = req.body.paidTip;
 	order.tipPercentage = req.body.tipPercentage;
@@ -633,6 +641,8 @@ exports.updateAppointmentEmployee = (req, res) => {
 	order.scheduledDate = req.body.scheduledDate;
 	order.service = req.body.service;
 	order.serviceDetails = req.body.serviceDetails;
+	order.serviceDetailsArray = req.body.serviceDetailsArray;
+	order.employeeAvailability = req.body.employeeAvailability;
 	order.scheduleStartsAt = req.body.scheduleStartsAt;
 	order.minLoyaltyPointsForAward = req.body.minLoyaltyPointsForAward;
 	order.onlineServicesFees = req.body.onlineServicesFees;
@@ -825,6 +835,8 @@ exports.updateAppointmentUser = (req, res) => {
 	order.scheduledDate = req.body.scheduledDate;
 	order.service = req.body.service;
 	order.serviceDetails = req.body.serviceDetails;
+	order.serviceDetailsArray = req.body.serviceDetailsArray;
+	order.employeeAvailability = req.body.employeeAvailability;
 	order.scheduleStartsAt = req.body.scheduleStartsAt;
 	order.minLoyaltyPointsForAward = req.body.minLoyaltyPointsForAward;
 	order.onlineServicesFees = req.body.onlineServicesFees;
@@ -1103,4 +1115,385 @@ exports.firstAvailableTimeAndEmployee = async (req, res) => {
 		EgyptDate: roundedTime.format("YYYY-MM-DD"),
 		EgyptTime: roundedTime.format("HH:mm"),
 	});
+};
+
+//
+//
+//
+// Our main function to find the first available appointment
+exports.findFirstAvailableAppointment = async (req, res) => {
+	try {
+		// Parse all necessary parameters from the request
+		const ownerId = mongoose.Types.ObjectId(req.params.ownerId);
+		const customerType = req.params.customerType;
+		const requestedServices = decodeURIComponent(req.params.serviceName).split(
+			","
+		);
+		const date = req.params.date;
+		const country = req.params.country;
+
+		// Get the list of services requested
+		const services = await Services.find({
+			serviceName: { $in: requestedServices },
+			belongsTo: ownerId,
+			customerType: customerType,
+		});
+
+		// Calculate total service time by summing up the service times of all requested services
+		const totalServiceTime = services.reduce(
+			(acc, curr) => acc + curr.serviceTime,
+			0
+		);
+
+		// Get all employees
+		const employees = await Employee.find({ belongsTo: ownerId });
+		let earliestAvailableTime;
+		let earliestAvailableEmployee;
+
+		// Get the current time in the country of the request
+		const currentTimeInCountry = moment()
+			.tz(getTimezoneForCountry(country))
+			.format("HH:mm");
+
+		const currentDateInCountry = moment()
+			.tz(getTimezoneForCountry(country))
+			.format("MM-DD-YYYY");
+
+		const dateParts = date.split("-");
+
+		// Pad the month, day, and year with leading zeros if necessary
+		const paddedMonth = dateParts[0].padStart(2, "0");
+		const paddedDay = dateParts[1].padStart(2, "0");
+		const paddedYear = dateParts[2].padStart(4, "0");
+
+		const paddedDate = `${paddedMonth}-${paddedDay}-${paddedYear}`;
+
+		// Iterate over all employees to find the earliest available time
+		for (const employee of employees) {
+			// Get a list of available time slots for the given employee
+			const availableTimes = await getAvailableTimes(
+				employee,
+				date,
+				totalServiceTime,
+				ownerId
+			);
+
+			// Filter the available times for times that are not in the past
+			const futureAvailableTimes = availableTimes.hoursAvailable.filter(
+				(time) => time >= currentTimeInCountry
+			);
+
+			// If the requested date is the same as the current date in the country
+			if (paddedDate === currentDateInCountry) {
+				// If the employee has at least one available time slot in the future
+				if (futureAvailableTimes.length > 0) {
+					// Take the first available time slot
+					const firstAvailableTime = futureAvailableTimes[0];
+					// If it is earlier than the currently earliest available time (or if it is the first available time found)
+					if (
+						!earliestAvailableTime ||
+						firstAvailableTime < earliestAvailableTime
+					) {
+						// Update the earliest available time and the corresponding employee
+						earliestAvailableTime = firstAvailableTime;
+						earliestAvailableEmployee = employee;
+					}
+				}
+			} else {
+				// If the requested date is not today, use the first available time slot without checking if it's in the future or not
+				earliestAvailableTime = availableTimes.hoursAvailable[0];
+				earliestAvailableEmployee = employee;
+			}
+		}
+
+		// If no available time slots were found
+		if (!earliestAvailableTime) {
+			return res.json({ message: "No available appointments." });
+		}
+
+		// Send a response with the earliest available time and the corresponding employee
+		res.json({
+			firstAvailableTime: moment(earliestAvailableTime, "HH:mm").format(
+				"HH:mm"
+			),
+			Employee: earliestAvailableEmployee,
+		});
+	} catch (err) {
+		console.error(err);
+		// If an error occurred, send a response with a status code of 500 and an error message
+		res.status(500).json({
+			error:
+				"An error occurred while trying to get the first available appointment.",
+		});
+	}
+};
+
+// A helper function to get the time zone for a given country
+function getTimezoneForCountry(country) {
+	// The time zones are hardcoded for Egypt and United States (PST Time)
+	switch (country) {
+		case "Egypt":
+			return "Africa/Cairo";
+		case "United States":
+			return "America/Los_Angeles";
+		default:
+			throw new Error(`Unsupported country: ${country}`);
+	}
+}
+
+// A helper function to get a list of available time slots for a given employee
+async function getAvailableTimes(employee2, date2, totalServiceTime, ownerId2) {
+	try {
+		const ownerId = mongoose.Types.ObjectId(ownerId2);
+		const employeeId = employee2._id;
+		const date = new Date(date2);
+
+		const dayOfWeek = [
+			"Sunday",
+			"Monday",
+			"Tuesday",
+			"Wednesday",
+			"Thursday",
+			"Friday",
+			"Saturday",
+		][date.getDay()];
+
+		// Get the employee
+		const employee = await Employee.findOne({
+			_id: employeeId,
+			belongsTo: ownerId,
+		});
+
+		// Check if the employee is working on the given date
+		if (!employee.workingDays.includes(dayOfWeek)) {
+			return { availability: "Unavailable" };
+		}
+
+		// Get all working hours of the employee
+		const workingHours = employee.workingHours.map((hour) => {
+			const [h, m] = hour.split(":");
+			return h * 60 + +m;
+		});
+
+		// Load all appointments of the employee
+		const allAppointments = await ScheduleOrder.find({
+			"employees._id": employeeId,
+			belongsTo: ownerId,
+		});
+
+		// Parse the target date
+		const targetDate = date;
+
+		// Filter the appointments to get those that match the target date
+		const appointments = allAppointments.filter((appointment) => {
+			const appointmentDate = new Date(appointment.scheduledDate);
+			return (
+				appointmentDate.getUTCFullYear() === targetDate.getUTCFullYear() &&
+				appointmentDate.getUTCMonth() === targetDate.getUTCMonth() &&
+				appointmentDate.getUTCDate() === targetDate.getUTCDate()
+			);
+		});
+
+		// Calculate occupied time slots
+		let occupiedTimeSlots = [];
+		let services = []; // initialize services to an empty array
+		for (let appointment of appointments) {
+			const startTime = new Date(
+				appointment.scheduledDate + " " + appointment.scheduledTime
+			);
+			services = await Services.find({
+				_id: { $in: appointment.serviceDetailsArray },
+			});
+			const serviceTime = services.reduce(
+				(acc, curr) => acc + curr.serviceTime,
+				0
+			); // sum of service times
+			const endTime = new Date(startTime.getTime() + serviceTime * 60 * 1000);
+			for (let i = startTime; i < endTime; i.setMinutes(i.getMinutes() + 15)) {
+				occupiedTimeSlots.push(i.getHours() * 60 + i.getMinutes());
+			}
+		}
+
+		// Get available time slots
+		let hoursAvailable = workingHours
+			.filter((hour) => {
+				if (occupiedTimeSlots.includes(hour)) return false;
+				// Check for availability for the entire duration of the service
+				for (let i = 1; i <= totalServiceTime / 15; i++) {
+					if (occupiedTimeSlots.includes(hour + i * 15)) return false;
+				}
+				return true;
+			})
+			.map(
+				(hour) =>
+					`${Math.floor(hour / 60)
+						.toString()
+						.padStart(2, "0")}:${(hour % 60).toString().padStart(2, "0")}`
+			);
+
+		// Sort hoursAvailable in ascending order
+		hoursAvailable.sort((a, b) => {
+			const [aHours, aMinutes] = a.split(":").map(Number);
+			const [bHours, bMinutes] = b.split(":").map(Number);
+			return aHours - bHours || aMinutes - bMinutes;
+		});
+
+		// Prepare the response
+		const availability =
+			hoursAvailable.length > 0 ? "Available" : "Unavailable";
+
+		return {
+			employee: employee,
+			hoursAvailable: hoursAvailable,
+			totalServiceTime: totalServiceTime,
+			servicesPicked: services,
+			availability: availability,
+		};
+	} catch (err) {
+		console.error(err);
+		return {
+			error: "An error occurred while trying to get the available slots.",
+		};
+	}
+}
+
+//For inbounds only
+//Comparing stuff that was loose load that was ran manually vs automatically on the conveyor
+//zll_ibound table
+//EKPO, EKKO, EKES
+// All inbounds filtered by vendor # MS_ASN_L
+//On Only po document level.
+//PBI Report. Automated trucks and manual trucks
+//Summary by date and underlying data
+//Sum of inbound master carton full case loose load qty
+
+exports.employeeFreeSlots = async (req, res) => {
+	try {
+		const ownerId = mongoose.Types.ObjectId(req.params.ownerId);
+		const employeeId = req.params.employeeId;
+		const date = new Date(req.params.date);
+
+		const dayOfWeek = [
+			"Sunday",
+			"Monday",
+			"Tuesday",
+			"Wednesday",
+			"Thursday",
+			"Friday",
+			"Saturday",
+		][date.getDay()];
+
+		// Get the employee
+		const employee = await Employee.findOne({
+			_id: employeeId,
+			belongsTo: ownerId,
+		});
+
+		// Check if the employee is working on the given date
+		if (!employee.workingDays.includes(dayOfWeek)) {
+			return res.json({ availability: "Unavailable" });
+		}
+
+		// Get all working hours of the employee
+		const workingHours = employee.workingHours.map((hour) => {
+			const [h, m] = hour.split(":");
+			return h * 60 + +m;
+		});
+
+		// Load all appointments of the employee
+		const allAppointments = await ScheduleOrder.find({
+			"employees._id": employeeId,
+			belongsTo: ownerId,
+		});
+
+		// Parse the target date
+		const targetDate = new Date(req.params.date);
+
+		// Filter the appointments to get those that match the target date
+		const appointments = allAppointments.filter((appointment) => {
+			const appointmentDate = new Date(appointment.scheduledDate);
+			return (
+				appointmentDate.getUTCFullYear() === targetDate.getUTCFullYear() &&
+				appointmentDate.getUTCMonth() === targetDate.getUTCMonth() &&
+				appointmentDate.getUTCDate() === targetDate.getUTCDate()
+			);
+		});
+
+		// console.log(appointments, "appointments");
+		// console.log("Employee Id         ", employeeId);
+		// console.log("targetDate           ", targetDate);
+
+		// Calculate occupied time slots
+		let occupiedTimeSlots = [];
+		for (let appointment of appointments) {
+			const startTime = new Date(
+				appointment.scheduledDate + " " + appointment.scheduledTime
+			);
+			const services = await Services.find({
+				_id: { $in: appointment.serviceDetailsArray },
+			});
+			const serviceTime = services.reduce(
+				(acc, curr) => acc + curr.serviceTime,
+				0
+			); // sum of service times
+			const endTime = new Date(startTime.getTime() + serviceTime * 60 * 1000);
+			for (let i = startTime; i < endTime; i.setMinutes(i.getMinutes() + 15)) {
+				occupiedTimeSlots.push(i.getHours() * 60 + i.getMinutes());
+			}
+		}
+
+		// Calculate total service time for the requested services
+		const requestedServices = decodeURIComponent(req.params.services).split(
+			","
+		);
+		const services = await Services.find({
+			serviceName: { $in: requestedServices },
+			belongsTo: ownerId,
+			customerType: req.params.customerType,
+		});
+		const totalServiceTime = services.reduce(
+			(acc, curr) => acc + curr.serviceTime,
+			0
+		); // sum of service times
+
+		// Get available time slots
+		let hoursAvailable = workingHours
+			.filter((hour) => {
+				if (occupiedTimeSlots.includes(hour)) return false;
+				// Check for availability for the entire duration of the service
+				for (let i = 1; i <= totalServiceTime / 15; i++) {
+					if (occupiedTimeSlots.includes(hour + i * 15)) return false;
+				}
+				return true;
+			})
+			.map(
+				(hour) =>
+					`${Math.floor(hour / 60)
+						.toString()
+						.padStart(2, "0")}:${(hour % 60).toString().padStart(2, "0")}`
+			);
+
+		// Sort hoursAvailable in ascending order
+		hoursAvailable.sort((a, b) => {
+			const [aHours, aMinutes] = a.split(":").map(Number);
+			const [bHours, bMinutes] = b.split(":").map(Number);
+			return aHours - bHours || aMinutes - bMinutes;
+		});
+
+		// Prepare the response
+		const availability =
+			hoursAvailable.length > 0 ? "Available" : "Unavailable";
+		res.json({
+			employee: employee,
+			hoursAvailable: hoursAvailable,
+			totalServiceTime: totalServiceTime,
+			servicesPicked: services,
+			availability: availability,
+		});
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({
+			error: "An error occurred while trying to get the available slots.",
+		});
+	}
 };

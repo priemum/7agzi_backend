@@ -2,18 +2,18 @@
 
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const {ObjectId} = mongoose.Schema;
+const { ObjectId } = mongoose.Schema;
 
 const EmployeeItemSchema = new mongoose.Schema(
 	{
-		employee: {type: ObjectId, ref: "Employee"},
+		employee: { type: ObjectId, ref: "Employee" },
 		employeeName: String,
 		employeePhone: String,
 		workingAtStoreName: String,
 		workPhotos: Array,
 		_id: String,
 	},
-	{timestamps: true}
+	{ timestamps: true }
 );
 
 const EmployeeItem = mongoose.model("EmployeeItem", EmployeeItemSchema);
@@ -22,7 +22,7 @@ const ScheduleOrderSchema = new mongoose.Schema(
 	{
 		employees: [EmployeeItemSchema],
 		transaction_id: {},
-		amount: {type: Number},
+		amount: { type: Number },
 		PetName: String,
 		PetBreed: String,
 		reminderTextSend: {
@@ -38,6 +38,16 @@ const ScheduleOrderSchema = new mongoose.Schema(
 		BookedFrom: String,
 		service: String,
 		serviceDetails: {},
+		serviceDetailsArray: [
+			{
+				type: ObjectId,
+				ref: "Services",
+			},
+		],
+		employeeAvailability: {
+			type: Object,
+			default: {},
+		},
 		serviceDuration: {},
 		applyPoints: Boolean,
 		scheduledTime: {},
@@ -73,18 +83,18 @@ const ScheduleOrderSchema = new mongoose.Schema(
 			], // enum means string objects
 		},
 
-		user: {type: ObjectId, ref: "User"},
-		updatedByUser: {type: ObjectId, ref: "User"},
+		user: { type: ObjectId, ref: "User" },
+		updatedByUser: { type: ObjectId, ref: "User" },
 		sharePaid: {
 			type: Boolean,
 			default: false,
 		},
 
-		belongsTo: {type: ObjectId, ref: "User"},
+		belongsTo: { type: ObjectId, ref: "User" },
 	},
-	{timestamps: true}
+	{ timestamps: true }
 );
 
 const ScheduleOrder = mongoose.model("ScheduleOrder", ScheduleOrderSchema);
 
-module.exports = {ScheduleOrder, EmployeeItem};
+module.exports = { ScheduleOrder, EmployeeItem };
