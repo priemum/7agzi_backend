@@ -18,6 +18,8 @@ const {
 	listFrontendBossAdmin,
 	updatingStoreStatus,
 	listFrontend2,
+	listFrontendByLocation,
+	countActiveStores,
 } = require("../controllers/storeManagement");
 
 router.post(
@@ -43,6 +45,11 @@ router.put(
 );
 
 router.get("/store-management-frontend-updated", listFrontend2);
+router.get("/active-stores-count", countActiveStores);
+router.get(
+	"/store-management/pagination/:lat/:lon/:pagination/:page",
+	listFrontendByLocation
+);
 
 router.param("userId", userById);
 router.param("serviceId", StoreManagementById);
