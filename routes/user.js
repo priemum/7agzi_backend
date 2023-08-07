@@ -29,6 +29,8 @@ const {
 	getDistinctValues,
 	updateAgent,
 	getOverallSalonOwnersData,
+	listOfStores,
+	reportSummary,
 } = require("../controllers/user");
 
 router.get("/secret/:userId", requireSignin, isAuth, isAdmin, (req, res) => {
@@ -83,6 +85,22 @@ router.get(
 	isAuth,
 	isAgent,
 	allUsersListBoss
+);
+
+router.get(
+	"/list-of-stores-xlook-admin/:pagination/:page/:searchQuery/:userId",
+	requireSignin,
+	isAuth,
+	isBoss,
+	listOfStores
+);
+
+router.get(
+	"/stores-report-summary/:userId",
+	requireSignin,
+	isAuth,
+	isBoss,
+	reportSummary
 );
 
 router.param("userId", userById);

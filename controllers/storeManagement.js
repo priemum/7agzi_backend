@@ -250,6 +250,18 @@ const calculateTravelTimes = async (userLocation, storeLocation) => {
 	return eta;
 };
 
+const createFilter = (params) => {
+	const filter = {};
+	if (params.country !== "undefined") filter.storeCountry = params.country;
+	if (params.governorate !== "undefined")
+		filter.storeGovernorate = params.governorate;
+	if (params.district !== "undefined") filter.storeDistrict = params.district;
+	if (params.storeType !== "undefined") filter.storeType = params.storeType;
+	if (params.service !== "undefined")
+		filter.services = { $elemMatch: { name: params.service } };
+	return filter;
+};
+
 exports.listFrontendByLocation = async (req, res) => {
 	const userLocation = {
 		latitude: parseFloat(req.params.lat),
@@ -274,7 +286,7 @@ exports.listFrontendByLocation = async (req, res) => {
 		stores = await StoreManagement.populate(stores, {
 			path: "belongsTo",
 			select:
-				"_id name email phone user activeUser storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare platFormShareToken",
+				"_id name email phone user activeUser storeName storeCountry storeGovernorate storeAddress storeDistrict storeType subscribed platFormShare platFormShareToken",
 		});
 
 		stores = await Promise.all(
@@ -307,6 +319,24 @@ exports.listFrontendByLocation = async (req, res) => {
 		stores = stores.filter((store) => store !== undefined);
 
 		stores.sort((a, b) => a.distance - b.distance);
+
+		const filter = createFilter(req.params);
+
+		stores = stores.filter((store) => {
+			for (let key in filter) {
+				if (
+					key === "services" &&
+					!store.services.some(
+						(service) => service.name === filter[key].$elemMatch.name
+					)
+				) {
+					return false;
+				} else if (store.belongsTo[key] !== filter[key]) {
+					return false;
+				}
+			}
+			return true;
+		});
 
 		const startIndex = (page - 1) * resultsPerPage;
 		const endIndex = page * resultsPerPage;
@@ -350,13 +380,41 @@ exports.listFrontendByLocation = async (req, res) => {
 	}
 };
 
+const createAggregateFilter = (params) => {
+	let filter = { activeStore: true }; // Default filter for active stores
+
+	if (params.country && params.country !== "undefined")
+		filter["user.storeCountry"] = params.country;
+	if (params.governorate && params.governorate !== "undefined")
+		filter["user.storeGovernorate"] = params.governorate;
+	if (params.district && params.district !== "undefined")
+		filter["user.storeDistrict"] = params.district;
+	if (params.storeType && params.storeType !== "undefined")
+		filter["user.storeType"] = params.storeType;
+
+	return filter;
+};
+
 exports.countActiveStores = async (req, res) => {
 	try {
+		const filter = createAggregateFilter(req.params);
+
 		const total = await StoreManagement.aggregate([
-			{ $match: { activeStore: true } },
+			{
+				$lookup: {
+					from: "users",
+					localField: "belongsTo",
+					foreignField: "_id",
+					as: "user",
+				},
+			},
+			{ $unwind: "$user" },
+			{ $match: filter },
 			{ $group: { _id: "$belongsTo" } },
 			{ $count: "total" },
 		]);
+
+		// console.log(total, "Total");
 
 		res.json({ total: total.length > 0 ? total[0].total : 0 });
 	} catch (err) {

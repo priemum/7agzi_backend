@@ -1,5 +1,3 @@
-/** @format */
-
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const { v1: uuidv1 } = require("uuid");

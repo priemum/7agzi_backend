@@ -45,9 +45,12 @@ router.put(
 );
 
 router.get("/store-management-frontend-updated", listFrontend2);
-router.get("/active-stores-count", countActiveStores);
 router.get(
-	"/store-management/pagination/:lat/:lon/:pagination/:page",
+	"/active-stores-count/:country/:governorate/:district/:storeType/:service",
+	countActiveStores
+);
+router.get(
+	"/store-management/pagination/:lat/:lon/:country/:governorate/:district/:storeType/:service/:pagination/:page",
 	listFrontendByLocation
 );
 

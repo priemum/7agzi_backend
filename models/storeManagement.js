@@ -46,6 +46,14 @@ const storeManagement = new mongoose.Schema(
 		storePhone: String,
 		longitude: String,
 		latitude: String,
+
+		salonGrade: {
+			type: String,
+			trim: true,
+			lowercase: true,
+			default: "c",
+		},
+
 		daysStoreClosed: {
 			type: Array,
 			trim: true,

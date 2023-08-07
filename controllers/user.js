@@ -5,6 +5,7 @@ const { ScheduleOrder } = require("../models/scheduleOrder");
 const StoreManagement = require("../models/storeManagement");
 const Services = require("../models/services");
 const Employee = require("../models/employee");
+const Gallary = require("../models/gallary");
 
 exports.userById = (req, res, next, id) => {
 	User.findById(id)
@@ -794,5 +795,138 @@ exports.getOverallSalonOwnersDataInDetails = async (req, res) => {
 	} catch (error) {
 		console.error(error);
 		res.status(500).send("Server error");
+	}
+};
+
+exports.listOfStores = async (req, res) => {
+	const resultsPerPage = parseInt(req.params.pagination, 20);
+	const page = parseInt(req.params.page, 20) || 1;
+	const searchQuery =
+		req.params.searchQuery && req.params.searchQuery !== "none"
+			? req.params.searchQuery
+			: null;
+
+	const filter = { role: 1000 };
+	if (searchQuery) {
+		// Apply search filter for multiple fields
+		filter.$or = [
+			{ name: new RegExp(searchQuery, "i") },
+			{ phone: new RegExp(searchQuery, "i") },
+			{ storeGovernorate: new RegExp(searchQuery, "i") },
+			{ storeDistrict: new RegExp(searchQuery, "i") },
+			{ storeName: new RegExp(searchQuery, "i") },
+			{ email: new RegExp(searchQuery, "i") },
+		];
+	}
+
+	try {
+		const users = await User.find(filter)
+			.sort({ createdAt: -1 })
+			.skip((page - 1) * resultsPerPage)
+			.limit(resultsPerPage)
+			.lean(); // .lean() returns plain JavaScript objects, not mongoose documents
+
+		const userIds = users.map((user) => user._id);
+
+		// Fetching associated store settings, services, employees, and galleries
+		const settings = await StoreManagement.find({
+			belongsTo: { $in: userIds },
+		});
+		const services = await Services.find({ belongsTo: { $in: userIds } });
+		const employees = await Employee.find({ belongsTo: { $in: userIds } });
+		const galleries = await Gallary.find({ belongsTo: { $in: userIds } });
+
+		// Add these to the user objects
+		users.forEach((user) => {
+			user.settings =
+				settings.filter(
+					(setting) => setting.belongsTo.toString() === user._id.toString()
+				) || [];
+			user.services =
+				services.filter(
+					(service) => service.belongsTo.toString() === user._id.toString()
+				) || [];
+			user.employees =
+				employees.filter(
+					(employee) => employee.belongsTo.toString() === user._id.toString()
+				) || [];
+			user.galleries =
+				galleries.filter(
+					(gallary) => gallary.belongsTo.toString() === user._id.toString()
+				) || [];
+		});
+
+		// Pagination logic
+		let pagination = {};
+		if (users.length === resultsPerPage) {
+			// If we have enough results for another page
+			pagination.next = {
+				page: page + 1,
+				limit: resultsPerPage,
+			};
+		}
+		if (page > 1) {
+			// If not on the first page
+			pagination.prev = {
+				page: page - 1,
+				limit: resultsPerPage,
+			};
+		}
+
+		res.json({ users, pagination });
+	} catch (err) {
+		console.log(err, "error occurred while fetching stores");
+		res.status(400).json({ error: err.message });
+	}
+};
+
+exports.reportSummary = async (req, res) => {
+	try {
+		const registeredStores = await User.countDocuments({ role: 1000 });
+
+		const addedSettingsOwners = await StoreManagement.aggregate([
+			{ $match: { settings: { $not: { $size: 0 } } } },
+			{ $group: { _id: "$belongsTo" } },
+		]);
+
+		const addedServicesOwners = await Services.aggregate([
+			{ $match: { services: { $not: { $size: 0 } } } },
+			{ $group: { _id: "$belongsTo" } },
+		]);
+
+		const addedEmployeesOwners = await Employee.aggregate([
+			{ $group: { _id: "$belongsTo" } },
+		]);
+
+		const addedGallaryOwners = await Gallary.aggregate([
+			{ $match: { gallaryPhotos: { $not: { $size: 0 } } } },
+			{ $group: { _id: "$belongsTo" } },
+		]);
+
+		// Get the most recent settings for each user and check if they're active
+		const recentSettingsForOwners = await StoreManagement.aggregate([
+			{ $sort: { createdAt: -1 } },
+			{ $group: { _id: "$belongsTo", recentSetting: { $first: "$$ROOT" } } },
+		]);
+
+		const activeStores = recentSettingsForOwners.filter(
+			(setting) => setting.recentSetting.activeStore
+		).length;
+		const notActiveStores = registeredStores - activeStores;
+
+		const result = {
+			registeredStores,
+			addedSettings: addedSettingsOwners.length,
+			addedServices: addedServicesOwners.length,
+			addedEmployees: addedEmployeesOwners.length,
+			addedGallary: addedGallaryOwners.length,
+			activeStores,
+			notActiveStores,
+		};
+
+		res.json(result);
+	} catch (err) {
+		console.error("Error in reportSummary:", err);
+		res.status(500).send("Internal Server Error");
 	}
 };
