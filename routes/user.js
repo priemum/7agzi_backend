@@ -31,6 +31,8 @@ const {
 	getOverallSalonOwnersData,
 	listOfStores,
 	reportSummary,
+	listOfStoresAgent,
+	reportSummaryAgent,
 } = require("../controllers/user");
 
 router.get("/secret/:userId", requireSignin, isAuth, isAdmin, (req, res) => {
@@ -101,6 +103,22 @@ router.get(
 	isAuth,
 	isBoss,
 	reportSummary
+);
+
+router.get(
+	"/list-of-stores-xlook-agent/:pagination/:page/:searchQuery/:userId",
+	requireSignin,
+	isAuth,
+	isAgent,
+	listOfStoresAgent
+);
+
+router.get(
+	"/stores-report-summary-agent/:userId",
+	requireSignin,
+	isAuth,
+	isAgent,
+	reportSummaryAgent
 );
 
 router.param("userId", userById);
