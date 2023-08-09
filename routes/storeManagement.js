@@ -20,6 +20,8 @@ const {
 	listFrontend2,
 	listFrontendByLocation,
 	countActiveStores,
+	migrateLocation,
+	listFrontendByLocation2,
 } = require("../controllers/storeManagement");
 
 router.post(
@@ -53,6 +55,13 @@ router.get(
 	"/store-management/pagination/:lat/:lon/:country/:governorate/:district/:storeType/:service/:pagination/:page",
 	listFrontendByLocation
 );
+
+router.get(
+	"/store-management2/pagination2/:lat/:lon/:country/:governorate/:district/:storeType/:service/:pagination/:page",
+	listFrontendByLocation2
+);
+
+router.get("/migrateLocation", migrateLocation);
 
 router.param("userId", userById);
 router.param("serviceId", StoreManagementById);

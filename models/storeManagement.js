@@ -44,8 +44,14 @@ const storeManagement = new mongoose.Schema(
 		},
 
 		storePhone: String,
+
 		longitude: String,
 		latitude: String,
+
+		location: {
+			type: { type: String, default: "Point" },
+			coordinates: { type: [Number], index: "2dsphere" },
+		},
 
 		salonGrade: {
 			type: String,

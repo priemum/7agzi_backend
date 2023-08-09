@@ -421,3 +421,140 @@ exports.countActiveStores = async (req, res) => {
 		res.status(400).json({ error: err });
 	}
 };
+
+exports.migrateLocation = async (req, res) => {
+	try {
+		await StoreManagement.find()
+			.cursor()
+			.eachAsync(async (store) => {
+				// Skip if the location object already exists and has coordinates
+				if (
+					store.location &&
+					store.location.coordinates &&
+					store.location.coordinates.length === 2
+				) {
+					return;
+				}
+
+				const longitude = parseFloat(store.longitude);
+				const latitude = parseFloat(store.latitude);
+
+				// Ensure that the longitude and latitude are valid numbers and within the correct ranges
+				if (
+					!isNaN(longitude) &&
+					!isNaN(latitude) &&
+					latitude >= -90 &&
+					latitude <= 90 &&
+					longitude >= -180 &&
+					longitude <= 180
+				) {
+					store.location = {
+						type: "Point",
+						coordinates: [longitude, latitude],
+					};
+
+					await store.save();
+				} else {
+					console.warn(
+						`Skipping store with invalid longitude/latitude: ${store._id}`
+					);
+				}
+			});
+
+		res.send("Migration completed successfully");
+	} catch (err) {
+		console.error(err);
+		res.status(500).send("Migration failed");
+	}
+};
+
+exports.listFrontendByLocation2 = async (req, res) => {
+	const userLocation = {
+		latitude: parseFloat(req.params.lat),
+		longitude: parseFloat(req.params.lon),
+	};
+	const resultsPerPage = parseInt(req.params.pagination, 10);
+	const page = parseInt(req.params.page, 10) || 1;
+
+	try {
+		let stores = await StoreManagement.aggregate([
+			{
+				$geoNear: {
+					near: {
+						type: "Point",
+						coordinates: [userLocation.longitude, userLocation.latitude],
+					},
+					distanceField: "distance",
+					spherical: true,
+				},
+			},
+			{ $match: { activeStore: true } },
+			{ $sort: { distance: 1, belongsTo: 1, createdAt: -1 } }, // Sort by distance
+			{
+				$group: {
+					_id: "$belongsTo",
+					doc: { $first: "$$ROOT" },
+				},
+			},
+			{ $replaceRoot: { newRoot: "$doc" } },
+		]);
+
+		stores = await StoreManagement.populate(stores, {
+			path: "belongsTo",
+			select:
+				"_id name email phone user activeUser storeName storeCountry storeGovernorate storeAddress storeDistrict storeType subscribed platFormShare platFormShareToken",
+		});
+
+		const filter = createFilter(req.params);
+
+		stores = stores.filter((store) => {
+			for (let key in filter) {
+				if (
+					key === "services" &&
+					!store.services.some(
+						(service) => service.name === filter[key].$elemMatch.name
+					)
+				) {
+					return false;
+				} else if (store.belongsTo[key] !== filter[key]) {
+					return false;
+				}
+			}
+			return true;
+		});
+
+		const startIndex = (page - 1) * resultsPerPage;
+		const endIndex = page * resultsPerPage;
+		const total = stores.length;
+		stores = stores.slice(startIndex, endIndex);
+
+		for (let i = 0; i < stores.length; i++) {
+			if (stores[i].belongsTo && stores[i].belongsTo._id) {
+				stores[i].services = await Services.find({
+					belongsTo: mongoose.Types.ObjectId(stores[i].belongsTo._id),
+					activeService: true,
+				});
+			}
+		}
+
+		let pagination = {};
+		if (endIndex < total) {
+			pagination.next = {
+				page: page + 1,
+				limit: resultsPerPage,
+			};
+		}
+
+		if (startIndex > 0) {
+			pagination.prev = {
+				page: page - 1,
+				limit: resultsPerPage,
+			};
+		}
+
+		res.json({ stores, pagination });
+	} catch (err) {
+		console.log(err, "err");
+		res.status(400).json({ error: err });
+	}
+};
