@@ -290,7 +290,7 @@ exports.listFrontendByLocation = async (req, res) => {
 		});
 
 		stores = await Promise.all(
-			stores.map(async (store, index) => {
+			stores.map(async (store) => {
 				try {
 					const storeLocation = {
 						latitude: parseFloat(store.latitude),
@@ -298,27 +298,34 @@ exports.listFrontendByLocation = async (req, res) => {
 					};
 					const distance = geolib.getDistance(userLocation, storeLocation);
 
-					const { driving, walking } = await calculateTravelTimes(
-						userLocation,
-						storeLocation
-					);
-
 					return {
 						...store,
 						distance,
-						walkingTime: walking,
-						drivingTime: driving,
 					};
 				} catch (error) {
-					// console.log(`Error processing store at index ${index}: `, error);
-					// console.log(`Store data: `, store);
+					// Handle the error if needed
 				}
 			})
 		);
 
 		stores = stores.filter((store) => store !== undefined);
-
 		stores.sort((a, b) => a.distance - b.distance);
+
+		// Calculate travel times for the first 4 stores only
+		for (let i = 0; i < 3 && i < stores.length; i++) {
+			const storeLocation = {
+				latitude: parseFloat(stores[i].latitude),
+				longitude: parseFloat(stores[i].longitude),
+			};
+
+			const { driving, walking } = await calculateTravelTimes(
+				userLocation,
+				storeLocation
+			);
+
+			stores[i].walkingTime = walking;
+			stores[i].drivingTime = driving;
+		}
 
 		const filter = createFilter(req.params);
 
@@ -350,11 +357,7 @@ exports.listFrontendByLocation = async (req, res) => {
 					activeService: true,
 				});
 			} else {
-				// console.log(
-				// 	"Store with index " +
-				// 		i +
-				// 		" does not have a belongsTo property or _id is undefined"
-				// );
+				// Handle the error if needed
 			}
 		}
 
@@ -496,7 +499,7 @@ exports.listFrontendByLocation2 = async (req, res) => {
 		});
 
 		stores = await Promise.all(
-			stores.map(async (store, index) => {
+			stores.map(async (store) => {
 				try {
 					const storeLocation = {
 						latitude: parseFloat(store.latitude),
@@ -509,14 +512,29 @@ exports.listFrontendByLocation2 = async (req, res) => {
 						distance,
 					};
 				} catch (error) {
-					// console.log(`Error processing store at index ${index}: `, error);
-					// console.log(`Store data: `, store);
+					// Handle the error if needed
 				}
 			})
 		);
 
 		stores = stores.filter((store) => store !== undefined);
 		stores.sort((a, b) => a.distance - b.distance);
+
+		// Calculate travel times for the first 4 stores only
+		for (let i = 0; i < 0 && i < stores.length; i++) {
+			const storeLocation = {
+				latitude: parseFloat(stores[i].latitude),
+				longitude: parseFloat(stores[i].longitude),
+			};
+
+			const { driving, walking } = await calculateTravelTimes(
+				userLocation,
+				storeLocation
+			);
+
+			stores[i].walkingTime = walking;
+			stores[i].drivingTime = driving;
+		}
 
 		const filter = createFilter(req.params);
 
@@ -548,11 +566,7 @@ exports.listFrontendByLocation2 = async (req, res) => {
 					activeService: true,
 				});
 			} else {
-				// console.log(
-				// 	"Store with index " +
-				// 		i +
-				// 		" does not have a belongsTo property or _id is undefined"
-				// );
+				// Handle the error if needed
 			}
 		}
 
