@@ -478,18 +478,8 @@ exports.listFrontendByLocation2 = async (req, res) => {
 
 	try {
 		let stores = await StoreManagement.aggregate([
-			{
-				$geoNear: {
-					near: {
-						type: "Point",
-						coordinates: [userLocation.longitude, userLocation.latitude],
-					},
-					distanceField: "distance",
-					spherical: true,
-				},
-			},
 			{ $match: { activeStore: true } },
-			{ $sort: { distance: 1, belongsTo: 1, createdAt: -1 } }, // Sort by distance
+			{ $sort: { belongsTo: 1, createdAt: -1 } },
 			{
 				$group: {
 					_id: "$belongsTo",
@@ -504,6 +494,29 @@ exports.listFrontendByLocation2 = async (req, res) => {
 			select:
 				"_id name email phone user activeUser storeName storeCountry storeGovernorate storeAddress storeDistrict storeType subscribed platFormShare platFormShareToken",
 		});
+
+		stores = await Promise.all(
+			stores.map(async (store, index) => {
+				try {
+					const storeLocation = {
+						latitude: parseFloat(store.latitude),
+						longitude: parseFloat(store.longitude),
+					};
+					const distance = geolib.getDistance(userLocation, storeLocation);
+
+					return {
+						...store,
+						distance,
+					};
+				} catch (error) {
+					// console.log(`Error processing store at index ${index}: `, error);
+					// console.log(`Store data: `, store);
+				}
+			})
+		);
+
+		stores = stores.filter((store) => store !== undefined);
+		stores.sort((a, b) => a.distance - b.distance);
 
 		const filter = createFilter(req.params);
 
@@ -534,6 +547,12 @@ exports.listFrontendByLocation2 = async (req, res) => {
 					belongsTo: mongoose.Types.ObjectId(stores[i].belongsTo._id),
 					activeService: true,
 				});
+			} else {
+				// console.log(
+				// 	"Store with index " +
+				// 		i +
+				// 		" does not have a belongsTo property or _id is undefined"
+				// );
 			}
 		}
 
