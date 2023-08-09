@@ -54,6 +54,13 @@ const storeManagement = new mongoose.Schema(
 			default: "c",
 		},
 
+		workersGender: {
+			type: String,
+			trim: true,
+			lowercase: true,
+			default: "male",
+		},
+
 		daysStoreClosed: {
 			type: Array,
 			trim: true,

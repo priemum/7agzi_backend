@@ -74,13 +74,7 @@ const ScheduleOrderSchema = new mongoose.Schema(
 		status: {
 			type: String,
 			default: "Not Paid",
-			enum: [
-				"Scheduled Online / Not Paid",
-				"Scheduled Online / Paid in Store",
-				"Scheduled From Store / Not Paid",
-				"Scheduled From Store / Paid",
-				"Cancelled",
-			], // enum means string objects
+			enum: ["Not Paid", "Paid", "Cancelled"], // enum means string objects
 		},
 
 		user: { type: ObjectId, ref: "User" },
