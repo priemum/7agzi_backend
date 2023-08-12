@@ -1361,7 +1361,8 @@ exports.employeeFreeSlots = async (req, res) => {
 	try {
 		const ownerId = mongoose.Types.ObjectId(req.params.ownerId);
 		const employeeId = req.params.employeeId;
-		const date = new Date(req.params.date);
+		const dateInEgypt = moment.tz(req.params.date, "Africa/Cairo");
+		const date = dateInEgypt.toDate();
 
 		const dayOfWeek = [
 			"Sunday",
@@ -1397,11 +1398,13 @@ exports.employeeFreeSlots = async (req, res) => {
 		});
 
 		// Parse the target date
-		const targetDate = new Date(req.params.date);
+		const targetDate = moment.tz(req.params.date, "Africa/Cairo").toDate();
 
 		// Filter the appointments to get those that match the target date
 		const appointments = allAppointments.filter((appointment) => {
-			const appointmentDate = new Date(appointment.scheduledDate);
+			const appointmentDate = moment
+				.tz(appointment.scheduledDate, "Africa/Cairo")
+				.toDate();
 			return (
 				appointmentDate.getUTCFullYear() === targetDate.getUTCFullYear() &&
 				appointmentDate.getUTCMonth() === targetDate.getUTCMonth() &&
@@ -1409,16 +1412,15 @@ exports.employeeFreeSlots = async (req, res) => {
 			);
 		});
 
-		// console.log(appointments, "appointments");
-		// console.log("Employee Id         ", employeeId);
-		// console.log("targetDate           ", targetDate);
-
 		// Calculate occupied time slots
 		let occupiedTimeSlots = [];
 		for (let appointment of appointments) {
-			const startTime = new Date(
-				appointment.scheduledDate + " " + appointment.scheduledTime
-			);
+			const startTime = moment
+				.tz(
+					appointment.scheduledDate + " " + appointment.scheduledTime,
+					"Africa/Cairo"
+				)
+				.toDate();
 			const services = await Services.find({
 				_id: { $in: appointment.serviceDetailsArray },
 			});
@@ -1426,9 +1428,16 @@ exports.employeeFreeSlots = async (req, res) => {
 				(acc, curr) => acc + curr.serviceTime,
 				0
 			); // sum of service times
-			const endTime = new Date(startTime.getTime() + serviceTime * 60 * 1000);
-			for (let i = startTime; i < endTime; i.setMinutes(i.getMinutes() + 15)) {
-				occupiedTimeSlots.push(i.getHours() * 60 + i.getMinutes());
+			const endTime = moment
+				.tz(startTime, "Africa/Cairo")
+				.add(serviceTime, "minutes")
+				.toDate();
+			for (
+				let i = moment(startTime);
+				i.isBefore(endTime);
+				i.add(15, "minutes")
+			) {
+				occupiedTimeSlots.push(i.hours() * 60 + i.minutes());
 			}
 		}
 
