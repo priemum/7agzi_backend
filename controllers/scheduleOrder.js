@@ -1499,6 +1499,16 @@ exports.employeeFreeSlots = async (req, res) => {
 
 		const availability =
 			hoursAvailable.length > 0 ? "Available" : "Unavailable";
+
+		const response = {
+			employee: employee,
+			hoursAvailable: hoursAvailable,
+			totalServiceTime: totalServiceTime,
+			servicesPicked: services,
+			availability: availability,
+		};
+
+		console.log("Response:", response);
 		res.json({
 			employee: employee,
 			hoursAvailable: hoursAvailable,
