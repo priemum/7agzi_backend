@@ -1361,8 +1361,10 @@ exports.employeeFreeSlots = async (req, res) => {
 	try {
 		const ownerId = mongoose.Types.ObjectId(req.params.ownerId);
 		const employeeId = req.params.employeeId;
-		// Convert date to ISO string
-		const isoString = req.params.date.split("-").reverse().join("-");
+		const [day, month, year] = req.params.date.split("-");
+		const isoString = `${year}-${String(month).padStart(2, "0")}-${String(
+			day
+		).padStart(2, "0")}`;
 
 		// Pass the converted string to moment
 		const targetDateInEgypt = moment.tz(isoString, "Africa/Cairo");
