@@ -31,7 +31,6 @@ const employeeSchema = new mongoose.Schema(
 			type: String,
 			trim: true,
 			maxlength: 100,
-			unique: true,
 		},
 		employeeWorkingAt: {
 			type: String,
