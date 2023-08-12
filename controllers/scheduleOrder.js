@@ -1361,14 +1361,17 @@ exports.employeeFreeSlots = async (req, res) => {
 	try {
 		const ownerId = mongoose.Types.ObjectId(req.params.ownerId);
 		const employeeId = req.params.employeeId;
-		const [day, month, year] = req.params.date.split("-");
-		const isoString = `${year}-${String(month).padStart(2, "0")}-${String(
-			day
-		).padStart(2, "0")}`;
+
+		const date = req.params.date;
+		const dateParts = date.split("-");
+		const paddedMonth = dateParts[0].padStart(2, "0");
+		const paddedDay = dateParts[1].padStart(2, "0");
+		const paddedYear = dateParts[2].padStart(4, "0");
+		const paddedDate = `${paddedYear}-${paddedMonth}-${paddedDay}`;
 
 		// Pass the converted string to moment
-		const targetDateInEgypt = moment.tz(isoString, "Africa/Cairo");
-		const date = targetDateInEgypt.toDate();
+		const targetDateInEgypt = moment.tz(paddedDate, "Africa/Cairo");
+		const dateObj = targetDateInEgypt.toDate();
 		const todayInEgypt = moment.tz("Africa/Cairo");
 
 		console.log("Today in Egypt:", todayInEgypt.format());
@@ -1388,7 +1391,7 @@ exports.employeeFreeSlots = async (req, res) => {
 			"Thursday",
 			"Friday",
 			"Saturday",
-		][date.getDay()];
+		][dateObj.getDay()];
 
 		const employee = await Employee.findOne({
 			_id: employeeId,
