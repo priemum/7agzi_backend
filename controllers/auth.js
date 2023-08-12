@@ -22,7 +22,7 @@ const fromEmail = "noreply@infinite-apps.com";
 const defaultEmail = "ahmed.abdelrazak@infinite-apps.com";
 const phoneNumber1 = "01097542859";
 const phoneNumber2 = "(999) 222-3322";
-const shopAddress = "123 main street, LA, CA";
+const shopAddress = "629 main street, LA, CA";
 const shopLogo =
 	"https://res.cloudinary.com/infiniteapps/image/upload/v1634425351/Hairsalon/logo_p62voj.png";
 
@@ -137,7 +137,6 @@ exports.signup = async (req, res) => {
 							 ${BarbershopName} support team <br />
 							 Contact Email: ${supportEmail} <br />
 							 Phone#: ${phoneNumber1} <br />
-							//  Landline#: ${phoneNumber2} <br />
 							 Address:  ${shopAddress}  <br />
 							 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
 							 <br />
@@ -156,61 +155,32 @@ exports.signup = async (req, res) => {
 };
 
 exports.signin = (req, res) => {
-	//find the user based on email
-	const { email, password } = req.body;
+	const { username, password } = req.body; // 'username' can be either email or phone
 
-	console.log(email, password);
-	User.findOne({ email }, (err, user) => {
-		if (err || !user) {
-			return res.status(400).json({
-				error: "User is Unavailable, Please Register or Try Again!!",
-			});
-		}
-		//if user is found make sure the email and password match
-		//create authenticate method in user model
-		if (!user.authenticate(password)) {
-			return res.status(401).json({
-				error: "Email or Password is incorrect, Please Try Again!!",
-			});
-		}
+	User.findOne(
+		{
+			$or: [{ email: username }, { phone: username }],
+		},
+		(err, user) => {
+			if (err || !user) {
+				return res.status(400).json({
+					error: "User is Unavailable, Please Register or Try Again!!",
+				});
+			}
 
-		//generate a signed token with user id and secret
-		const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
-		//persist the token as 't' in cookie with expiry date
-		res.cookie("t", token, { expire: "1d" });
+			if (!user.authenticate(password)) {
+				return res.status(401).json({
+					error: "Email or Password is incorrect, Please Try Again!!",
+				});
+			}
 
-		//return response with user and token to frontend client
-		const {
-			_id,
-			name,
-			email,
-			role,
-			activePoints,
-			activeUser,
-			storeAddress,
-			storeName,
-			storeGovernorate,
-			phone,
-			subscribed,
-			storeType,
-			belongsTo,
-			storeDistrict,
-			platFormShare,
-			smsPayAsYouGo,
-			platFormShareToken,
-			smsPayAsYouGoToken,
-			subscriptionToken,
-			subscriptionId,
-			agent,
-			paidAgent,
-			storeCountry,
-		} = user;
-		return res.json({
-			token,
-			user: {
+			const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+			res.cookie("t", token, { expire: "1d" });
+
+			const {
 				_id,
-				email,
 				name,
+				email,
 				role,
 				activePoints,
 				activeUser,
@@ -231,9 +201,38 @@ exports.signin = (req, res) => {
 				agent,
 				paidAgent,
 				storeCountry,
-			},
-		});
-	});
+			} = user;
+
+			return res.json({
+				token,
+				user: {
+					_id,
+					email,
+					name,
+					role,
+					activePoints,
+					activeUser,
+					storeAddress,
+					storeName,
+					storeGovernorate,
+					phone,
+					subscribed,
+					storeType,
+					belongsTo,
+					storeDistrict,
+					platFormShare,
+					smsPayAsYouGo,
+					platFormShareToken,
+					smsPayAsYouGoToken,
+					subscriptionToken,
+					subscriptionId,
+					agent,
+					paidAgent,
+					storeCountry,
+				},
+			});
+		}
+	);
 };
 
 exports.signout = (req, res) => {
@@ -321,23 +320,116 @@ exports.isInStore = (req, res, next) => {
 	next();
 };
 
-exports.forgotPassword = (req, res) => {
-	const { email } = req.body;
+// exports.forgotPassword = (req, res) => {
+// 	const { email } = req.body;
 
-	User.findOne({ email }, (err, user) => {
+// 	User.findOne({ email }, (err, user) => {
+// 		if (err || !user) {
+// 			return res.status(400).json({
+// 				error: "User with that email does not exist",
+// 			});
+// 		}
+
+// 		const token = jwt.sign(
+// 			{ _id: user._id, name: user.name },
+// 			process.env.JWT_RESET_PASSWORD,
+// 			{
+// 				expiresIn: "10m",
+// 			}
+// 		);
+
+// 		const emailData_Reset = {
+// 			to: email,
+// 			from: fromEmail,
+// 			subject: `Password Reset link`,
+// 			html: `
+//                 <h1>Please use the following link to reset your password</h1>
+//                 <p>${process.env.CLIENT_URL}/auth/password/reset/${token}</p>
+//                 <hr />
+//                 <p>This email may contain sensetive information</p>
+//                 <p>${process.env.CLIENT_URL}</p>
+//                 <br />
+// 				 Kind and Best Regards,  <br />
+// 							 ${BarbershopName} support team <br />
+// 							 Contact Email: ${supportEmail} <br />
+// 							 Phone#: ${phoneNumber1} <br />
+// 							 Address:  ${shopAddress}  <br />
+// 							 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
+// 							 <br />
+// 							 <p>
+// 							 <strong>${BarbershopName}</strong>
+// 							  </p>
+//             `,
+// 		};
+// 		const emailData_Reset2 = {
+// 			to: defaultEmail,
+// 			from: fromEmail,
+// 			subject: `Password Reset link`,
+// 			html: `
+// 		        <h1>user ${email} tried to reset her/his password using the below link</h1>
+// 		        <p>${process.env.CLIENT_URL}/auth/password/reset/${token}</p>
+// 		        <hr />
+// 		        <p>This email may contain sensetive information</p>
+// 		        <p>${process.env.CLIENT_URL}</p>
+// 		         <br />
+// 				 Kind and Best Regards,  <br />
+// 				 ${BarbershopName} support team <br />
+// 				 Contact Email: ${supportEmail} <br />
+// 				 Phone#: ${phoneNumber1} <br />
+// 				 Address:  ${shopAddress}  <br />
+// 				 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
+// 				 <br />
+// 				 <p>
+// 				 <strong>${BarbershopName}</strong>
+// 				  </p>
+// 		    `,
+// 		};
+
+// 		return user.updateOne({ resetPasswordLink: token }, (err, success) => {
+// 			if (err) {
+// 				console.log("RESET PASSWORD LINK ERROR", err);
+// 				return res.status(400).json({
+// 					error: "Database connection error on user password forgot request",
+// 				});
+// 			} else {
+// 				sgMail.send(emailData_Reset2);
+// 				sgMail
+// 					.send(emailData_Reset)
+// 					.then((sent) => {
+// 						console.log("SIGNUP EMAIL SENT", sent);
+// 						return res.json({
+// 							message: `Email has been sent to ${email}. Follow the instruction to Reset your Password`,
+// 						});
+// 					})
+// 					.catch((err) => {
+// 						console.log("SIGNUP EMAIL SENT ERROR", err);
+// 						return res.json({
+// 							message: err.message,
+// 						});
+// 					});
+// 			}
+// 		});
+// 	});
+// };
+
+exports.forgotPassword = (req, res) => {
+	const { username } = req.body;
+	const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(
+		username
+	);
+	const query = isEmail ? { email: username } : { phone: username };
+
+	User.findOne(query, (err, user) => {
 		if (err || !user) {
 			return res.status(400).json({
-				error: "User with that email does not exist",
+				error: "User with that email/phone number does not exist",
 			});
 		}
 
-		const token = jwt.sign(
-			{ _id: user._id, name: user.name },
-			process.env.JWT_RESET_PASSWORD,
-			{
-				expiresIn: "10m",
-			}
-		);
+		// Generate a token with user id and secret
+		const token = jwt.sign({ _id: user._id }, process.env.RESET_PASSWORD_KEY, {
+			expiresIn: "10m",
+		});
 
 		const emailData_Reset = {
 			to: email,
@@ -354,7 +446,6 @@ exports.forgotPassword = (req, res) => {
 							 ${BarbershopName} support team <br />
 							 Contact Email: ${supportEmail} <br />
 							 Phone#: ${phoneNumber1} <br />
-							//  Landline#: ${phoneNumber2} <br />
 							 Address:  ${shopAddress}  <br />
 							 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
 							 <br />
@@ -378,7 +469,6 @@ exports.forgotPassword = (req, res) => {
 				 ${BarbershopName} support team <br />
 				 Contact Email: ${supportEmail} <br />
 				 Phone#: ${phoneNumber1} <br />
-				//  Landline#: ${phoneNumber2} <br />
 				 Address:  ${shopAddress}  <br />
 				 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
 				 <br />
@@ -525,7 +615,6 @@ exports.googleLogin = (req, res) => {
 										 ${BarbershopName} support team <br />
 										 Contact Email: ${supportEmail} <br />
 										 Phone#: ${phoneNumber1} <br />
-										//  Landline#: ${phoneNumber2} <br />
 										 Address:  ${shopAddress}  <br />
 										 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
 										 <br />
