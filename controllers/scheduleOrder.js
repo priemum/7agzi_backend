@@ -1370,7 +1370,11 @@ exports.employeeFreeSlots = async (req, res) => {
 		const paddedDate = `${paddedYear}-${paddedMonth}-${paddedDay}`;
 
 		// Pass the converted string to moment
-		const targetDateInEgypt = moment.tz(paddedDate, "Africa/Cairo");
+		const targetDateInEgypt = moment.tz(
+			paddedDate,
+			"YYYY-MM-DD",
+			"Africa/Cairo"
+		);
 		const dateObj = targetDateInEgypt.toDate();
 		const todayInEgypt = moment.tz("Africa/Cairo");
 
@@ -1414,12 +1418,12 @@ exports.employeeFreeSlots = async (req, res) => {
 
 		const appointments = allAppointments.filter((appointment) => {
 			const appointmentDate = moment
-				.tz(appointment.scheduledDate, "Africa/Cairo")
+				.tz(appointment.scheduledDate, "YYYY-MM-DD", "Africa/Cairo")
 				.toDate();
 			return (
-				appointmentDate.getUTCFullYear() === date.getUTCFullYear() &&
-				appointmentDate.getUTCMonth() === date.getUTCMonth() &&
-				appointmentDate.getUTCDate() === date.getUTCDate()
+				appointmentDate.getFullYear() === dateObj.getFullYear() &&
+				appointmentDate.getMonth() === dateObj.getMonth() &&
+				appointmentDate.getDate() === dateObj.getDate()
 			);
 		});
 
@@ -1428,6 +1432,7 @@ exports.employeeFreeSlots = async (req, res) => {
 			const startTime = moment
 				.tz(
 					appointment.scheduledDate + " " + appointment.scheduledTime,
+					"YYYY-MM-DD HH:mm",
 					"Africa/Cairo"
 				)
 				.toDate();
