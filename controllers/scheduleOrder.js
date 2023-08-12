@@ -1361,8 +1361,13 @@ exports.employeeFreeSlots = async (req, res) => {
 	try {
 		const ownerId = mongoose.Types.ObjectId(req.params.ownerId);
 		const employeeId = req.params.employeeId;
-		const dateInEgypt = moment.tz(req.params.date, "Africa/Cairo");
-		const date = dateInEgypt.toDate();
+		const targetDateInEgypt = moment.tz(req.params.date, "Africa/Cairo");
+		const date = targetDateInEgypt.toDate();
+		const todayInEgypt = moment.tz("Africa/Cairo");
+
+		const isToday = targetDateInEgypt.isSame(todayInEgypt, "day");
+		const currentTimeInMinutes =
+			todayInEgypt.hours() * 60 + todayInEgypt.minutes();
 
 		const dayOfWeek = [
 			"Sunday",
@@ -1397,18 +1402,15 @@ exports.employeeFreeSlots = async (req, res) => {
 			belongsTo: ownerId,
 		});
 
-		// Parse the target date
-		const targetDate = moment.tz(req.params.date, "Africa/Cairo").toDate();
-
 		// Filter the appointments to get those that match the target date
 		const appointments = allAppointments.filter((appointment) => {
 			const appointmentDate = moment
 				.tz(appointment.scheduledDate, "Africa/Cairo")
 				.toDate();
 			return (
-				appointmentDate.getUTCFullYear() === targetDate.getUTCFullYear() &&
-				appointmentDate.getUTCMonth() === targetDate.getUTCMonth() &&
-				appointmentDate.getUTCDate() === targetDate.getUTCDate()
+				appointmentDate.getUTCFullYear() === date.getUTCFullYear() &&
+				appointmentDate.getUTCMonth() === date.getUTCMonth() &&
+				appointmentDate.getUTCDate() === date.getUTCDate()
 			);
 		});
 
@@ -1458,6 +1460,8 @@ exports.employeeFreeSlots = async (req, res) => {
 		// Get available time slots
 		let hoursAvailable = workingHours
 			.filter((hour) => {
+				// Filter out past hours if the chosen date is today
+				if (isToday && hour <= currentTimeInMinutes) return false;
 				if (occupiedTimeSlots.includes(hour)) return false;
 				// Check for availability for the entire duration of the service
 				for (let i = 1; i <= totalServiceTime / 15; i++) {
