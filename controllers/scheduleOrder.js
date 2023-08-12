@@ -1361,31 +1361,7 @@ exports.employeeFreeSlots = async (req, res) => {
 	try {
 		const ownerId = mongoose.Types.ObjectId(req.params.ownerId);
 		const employeeId = req.params.employeeId;
-
-		const date = req.params.date;
-		const dateParts = date.split("-");
-		const paddedMonth = dateParts[0].padStart(2, "0");
-		const paddedDay = dateParts[1].padStart(2, "0");
-		const paddedYear = dateParts[2].padStart(4, "0");
-		const paddedDate = `${paddedYear}-${paddedMonth}-${paddedDay}`;
-
-		// Pass the converted string to moment
-		const targetDateInEgypt = moment.tz(
-			paddedDate,
-			"YYYY-MM-DD",
-			"Africa/Cairo"
-		);
-		const dateObj = targetDateInEgypt.toDate();
-		const todayInEgypt = moment.tz("Africa/Cairo");
-
-		console.log("Today in Egypt:", todayInEgypt.format());
-
-		const isToday = targetDateInEgypt.isSame(todayInEgypt, "day");
-		console.log("Is it today:", isToday);
-
-		const currentTimeInMinutes =
-			todayInEgypt.hours() * 60 + todayInEgypt.minutes();
-		console.log("Current time in minutes:", currentTimeInMinutes);
+		const date = new Date(req.params.date);
 
 		const dayOfWeek = [
 			"Sunday",
@@ -1395,67 +1371,68 @@ exports.employeeFreeSlots = async (req, res) => {
 			"Thursday",
 			"Friday",
 			"Saturday",
-		][dateObj.getDay()];
+		][date.getDay()];
 
+		// Get the employee
 		const employee = await Employee.findOne({
 			_id: employeeId,
 			belongsTo: ownerId,
 		});
 
+		// Check if the employee is working on the given date
 		if (!employee.workingDays.includes(dayOfWeek)) {
 			return res.json({ availability: "Unavailable" });
 		}
 
+		// Get all working hours of the employee
 		const workingHours = employee.workingHours.map((hour) => {
 			const [h, m] = hour.split(":");
 			return h * 60 + +m;
 		});
 
+		// Load all appointments of the employee
 		const allAppointments = await ScheduleOrder.find({
 			"employees._id": employeeId,
 			belongsTo: ownerId,
 		});
 
+		// Parse the target date
+		const targetDate = new Date(req.params.date);
+
+		// Filter the appointments to get those that match the target date
 		const appointments = allAppointments.filter((appointment) => {
-			const appointmentDate = moment
-				.tz(appointment.scheduledDate, "YYYY-MM-DD", "Africa/Cairo")
-				.toDate();
+			const appointmentDate = new Date(appointment.scheduledDate);
 			return (
-				appointmentDate.getFullYear() === dateObj.getFullYear() &&
-				appointmentDate.getMonth() === dateObj.getMonth() &&
-				appointmentDate.getDate() === dateObj.getDate()
+				appointmentDate.getUTCFullYear() === targetDate.getUTCFullYear() &&
+				appointmentDate.getUTCMonth() === targetDate.getUTCMonth() &&
+				appointmentDate.getUTCDate() === targetDate.getUTCDate()
 			);
 		});
 
+		// console.log(appointments, "appointments");
+		// console.log("Employee Id         ", employeeId);
+		// console.log("targetDate           ", targetDate);
+
+		// Calculate occupied time slots
 		let occupiedTimeSlots = [];
 		for (let appointment of appointments) {
-			const startTime = moment
-				.tz(
-					appointment.scheduledDate + " " + appointment.scheduledTime,
-					"YYYY-MM-DD HH:mm",
-					"Africa/Cairo"
-				)
-				.toDate();
+			const startTime = new Date(
+				appointment.scheduledDate + " " + appointment.scheduledTime
+			);
 			const services = await Services.find({
 				_id: { $in: appointment.serviceDetailsArray },
 			});
 			const serviceTime = services.reduce(
 				(acc, curr) => acc + curr.serviceTime,
 				0
-			);
-			const endTime = moment
-				.tz(startTime, "Africa/Cairo")
-				.add(serviceTime, "minutes")
-				.toDate();
-			for (
-				let i = moment(startTime);
-				i.isBefore(endTime);
-				i.add(15, "minutes")
-			) {
-				occupiedTimeSlots.push(i.hours() * 60 + i.minutes());
+			); // sum of service times
+			const endTime = new Date(startTime.getTime() + serviceTime * 60 * 1000);
+			for (let i = startTime; i < endTime; i.setMinutes(i.getMinutes() + 15)) {
+				occupiedTimeSlots.push(i.getHours() * 60 + i.getMinutes());
 			}
 		}
 
+		// Calculate total service time for the requested services
 		const requestedServices = decodeURIComponent(req.params.services).split(
 			","
 		);
@@ -1467,16 +1444,13 @@ exports.employeeFreeSlots = async (req, res) => {
 		const totalServiceTime = services.reduce(
 			(acc, curr) => acc + curr.serviceTime,
 			0
-		);
+		); // sum of service times
 
+		// Get available time slots
 		let hoursAvailable = workingHours
 			.filter((hour) => {
-				console.log("Checking hour:", hour);
-				if (isToday && hour <= currentTimeInMinutes) {
-					console.log("Hour is in the past:", hour);
-					return false;
-				}
 				if (occupiedTimeSlots.includes(hour)) return false;
+				// Check for availability for the entire duration of the service
 				for (let i = 1; i <= totalServiceTime / 15; i++) {
 					if (occupiedTimeSlots.includes(hour + i * 15)) return false;
 				}
@@ -1489,26 +1463,16 @@ exports.employeeFreeSlots = async (req, res) => {
 						.padStart(2, "0")}:${(hour % 60).toString().padStart(2, "0")}`
 			);
 
+		// Sort hoursAvailable in ascending order
 		hoursAvailable.sort((a, b) => {
 			const [aHours, aMinutes] = a.split(":").map(Number);
 			const [bHours, bMinutes] = b.split(":").map(Number);
 			return aHours - bHours || aMinutes - bMinutes;
 		});
 
-		console.log("Hours available:", hoursAvailable);
-
+		// Prepare the response
 		const availability =
 			hoursAvailable.length > 0 ? "Available" : "Unavailable";
-
-		const response = {
-			employee: employee,
-			hoursAvailable: hoursAvailable,
-			totalServiceTime: totalServiceTime,
-			servicesPicked: services,
-			availability: availability,
-		};
-
-		console.log("Response:", response);
 		res.json({
 			employee: employee,
 			hoursAvailable: hoursAvailable,
