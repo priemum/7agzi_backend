@@ -40,7 +40,7 @@ exports.listFrontend = (req, res) => {
 	StoreManagement.find()
 		.populate(
 			"belongsTo",
-			"_id name email phone role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent platFormShareToken"
+			"_id name email phone role user points activePoints likesUser storeType activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent platFormShareToken"
 		)
 		.exec((err, data) => {
 			if (err) {
@@ -58,7 +58,7 @@ exports.list = (req, res) => {
 	})
 		.populate(
 			"belongsTo",
-			"_id name email phone role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent platFormShareToken"
+			"_id name email phone role user points activePoints likesUser activeUser history storeType createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent platFormShareToken"
 		)
 		.exec((err, data) => {
 			if (err) {
@@ -77,7 +77,7 @@ exports.listFrontendBossAdmin = (req, res) => {
 	})
 		.populate(
 			"belongsTo",
-			"_id name email phone role user points activePoints likesUser activeUser history createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent platFormShareToken"
+			"_id name email phone role user points activePoints likesUser activeUser history storeType createdAt storeName storeGovernorate storeAddress storeDistrict subscribed platFormShare smsPayAsYouGo subscriptionId agent platFormShareToken"
 		)
 		.exec((err, data) => {
 			if (err) {

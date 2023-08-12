@@ -1357,16 +1357,6 @@ async function getAvailableTimes(employee2, date2, totalServiceTime, ownerId2) {
 	}
 }
 
-//For inbounds only
-//Comparing stuff that was loose load that was ran manually vs automatically on the conveyor
-//zll_ibound table
-//EKPO, EKKO, EKES
-// All inbounds filtered by vendor # MS_ASN_L
-//On Only po document level.
-//PBI Report. Automated trucks and manual trucks
-//Summary by date and underlying data
-//Sum of inbound master carton full case loose load qty
-
 exports.employeeFreeSlots = async (req, res) => {
 	try {
 		const ownerId = mongoose.Types.ObjectId(req.params.ownerId);
