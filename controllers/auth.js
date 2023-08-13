@@ -24,7 +24,7 @@ const phoneNumber1 = "01097542859";
 const phoneNumber2 = "(999) 222-3322";
 const shopAddress = "629 main street, LA, CA";
 const shopLogo =
-	"https://res.cloudinary.com/infiniteapps/image/upload/v1634425351/Hairsalon/logo_p62voj.png";
+	"https://res.cloudinary.com/infiniteapps/image/upload/v1691837329/Hairsalon/1691837329182.png";
 
 exports.signup = async (req, res) => {
 	//   console.log("req.body", req.body);
@@ -426,17 +426,24 @@ exports.forgotPassword = (req, res) => {
 			});
 		}
 
+		const email = user.email; // Extracting the email from user object
+
 		// Generate a token with user id and secret
-		const token = jwt.sign({ _id: user._id }, process.env.RESET_PASSWORD_KEY, {
-			expiresIn: "10m",
-		});
+		console.log("JWT_RESET_PASSWORD:", process.env.JWT_RESET_PASSWORD);
+		const token = jwt.sign(
+			{ _id: user._id, name: user.name },
+			process.env.JWT_RESET_PASSWORD,
+			{
+				expiresIn: "10m",
+			}
+		);
 
 		const emailData_Reset = {
 			to: email,
 			from: fromEmail,
 			subject: `Password Reset link`,
 			html: `
-                <h1>Please use the following link to reset your password</h1>
+                <h1>Hi ${user.name} - Please use the following link to reset your password</h1>
                 <p>${process.env.CLIENT_URL}/auth/password/reset/${token}</p>
                 <hr />
                 <p>This email may contain sensetive information</p>
@@ -485,6 +492,22 @@ exports.forgotPassword = (req, res) => {
 					error: "Database connection error on user password forgot request",
 				});
 			} else {
+				//
+				//
+				//Whats App Message
+				orderStatusSMS.messages
+					.create({
+						from: "whatsapp:+201097542859",
+						body: `Hi ${user.name} - Please click here to reset your password ${process.env.CLIENT_URL}/auth/password/reset/${token}`,
+						to: `whatsapp:+1${user.phone}`,
+					})
+					.then((message) =>
+						console.log(`Your message was successfully sent to +1${user.phone}`)
+					)
+					.catch((err) => console.log(err));
+				//End of Whats App Message
+				//
+				//
 				sgMail.send(emailData_Reset2);
 				sgMail
 					.send(emailData_Reset)
