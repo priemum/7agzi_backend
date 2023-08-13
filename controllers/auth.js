@@ -545,34 +545,26 @@ exports.resetPassword = (req, res) => {
 
 				User.findOne({ resetPasswordLink }, (err, user) => {
 					if (err || !user) {
-						console.log(err, "error from the server");
 						return res.status(400).json({
 							error: "Something went wrong. Try later",
 						});
 					}
 
-					// Hash the new password
-					bcrypt.hash(newPassword, 10, (err, hash) => {
+					const updatedFields = {
+						password: newPassword,
+						resetPasswordLink: "",
+					};
+
+					user = _.extend(user, updatedFields);
+
+					user.save((err, result) => {
 						if (err) {
 							return res.status(400).json({
-								error: "Error hashing password",
+								error: "Error resetting user password",
 							});
 						}
-
-						const updatedFields = {
-							password: hash,
-							resetPasswordLink: "",
-						};
-
-						User.updateOne({ _id: user._id }, updatedFields, (err, result) => {
-							if (err) {
-								return res.status(400).json({
-									error: "Error resetting user password",
-								});
-							}
-							res.json({
-								message: "Great! Now you can login with your new password",
-							});
+						res.json({
+							message: `Great! Now you can login with your new password`,
 						});
 					});
 				});
