@@ -115,6 +115,8 @@ exports.update = (req, res) => {
 	const {
 		name,
 		password,
+		email,
+		phone,
 		storeName,
 		subscribed,
 		platFormShare,
@@ -150,11 +152,7 @@ exports.update = (req, res) => {
 			}
 		}
 
-		if (!storeName) {
-			return res.status(400).json({
-				error: "storeName is required",
-			});
-		} else {
+		if (storeName) {
 			user.storeName = storeName;
 		}
 
@@ -186,6 +184,16 @@ exports.update = (req, res) => {
 			user.platFormShareToken = platFormShareToken;
 		}
 
+		if (email) {
+			user.email = email;
+			user.email = email;
+		}
+
+		if (phone) {
+			user.phone = phone;
+			user.phone = phone;
+		}
+
 		user.save((err, updatedUser) => {
 			if (err) {
 				console.log("USER UPDATE ERROR", err);
@@ -199,6 +207,7 @@ exports.update = (req, res) => {
 		});
 	});
 };
+
 exports.addOrderToUserHistory = (req, res, next) => {
 	let history = [];
 	// console.log(req.profile, "this is the req.profile");

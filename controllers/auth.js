@@ -509,6 +509,7 @@ exports.forgotPassword = (req, res) => {
 				//End of Whats App Message
 				//
 				//
+
 				sgMail.send(emailData_Reset2);
 				sgMail
 					.send(emailData_Reset)
