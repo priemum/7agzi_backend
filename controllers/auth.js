@@ -502,7 +502,7 @@ exports.forgotPassword = (req, res) => {
 						to: `whatsapp:+2${user.phone}`,
 					})
 					.then((message) =>
-						console.log(`Your message was successfully sent to +1${user.phone}`)
+						console.log(`Your message was successfully sent to +2${user.phone}`)
 					)
 					.catch((err) => console.log(err));
 				//End of Whats App Message
@@ -550,19 +550,28 @@ exports.resetPassword = (req, res) => {
 						});
 					}
 
-					const updatedFields = {
-						password: newPassword,
-						resetPasswordLink: "",
-					};
-
-					User.updateOne({ _id: user._id }, updatedFields, (err, result) => {
+					// Hash the new password
+					bcrypt.hash(newPassword, 10, (err, hash) => {
 						if (err) {
 							return res.status(400).json({
-								error: "Error resetting user password",
+								error: "Error hashing password",
 							});
 						}
-						res.json({
-							message: `Great! Now you can login with your new password`,
+
+						const updatedFields = {
+							password: hash,
+							resetPasswordLink: "",
+						};
+
+						User.updateOne({ _id: user._id }, updatedFields, (err, result) => {
+							if (err) {
+								return res.status(400).json({
+									error: "Error resetting user password",
+								});
+							}
+							res.json({
+								message: "Great! Now you can login with your new password",
+							});
 						});
 					});
 				});
