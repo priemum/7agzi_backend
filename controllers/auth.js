@@ -499,7 +499,7 @@ exports.forgotPassword = (req, res) => {
 					.create({
 						from: "whatsapp:+201097542859",
 						body: `Hi ${user.name} - Please click here to reset your password ${process.env.CLIENT_URL}/auth/password/reset/${token}`,
-						to: `whatsapp:+1${user.phone}`,
+						to: `whatsapp:+2${user.phone}`,
 					})
 					.then((message) =>
 						console.log(`Your message was successfully sent to +1${user.phone}`)
@@ -554,9 +554,7 @@ exports.resetPassword = (req, res) => {
 						resetPasswordLink: "",
 					};
 
-					user = _.extend(user, updatedFields);
-
-					user.save((err, result) => {
+					User.updateOne({ _id: user._id }, updatedFields, (err, result) => {
 						if (err) {
 							return res.status(400).json({
 								error: "Error resetting user password",
