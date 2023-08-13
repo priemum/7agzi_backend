@@ -544,6 +544,7 @@ exports.resetPassword = (req, res) => {
 
 				User.findOne({ resetPasswordLink }, (err, user) => {
 					if (err || !user) {
+						console.log(err, "error from the server");
 						return res.status(400).json({
 							error: "Something went wrong. Try later",
 						});
