@@ -1363,6 +1363,8 @@ exports.employeeFreeSlots = async (req, res) => {
 		const employeeId = req.params.employeeId;
 		const date = new Date(req.params.date);
 
+		console.log(req.params.date, "req.params.date");
+
 		const dayOfWeek = [
 			"Sunday",
 			"Monday",
