@@ -825,6 +825,7 @@ exports.listOfStores = async (req, res) => {
 			{ storeDistrict: new RegExp(searchQuery, "i") },
 			{ storeName: new RegExp(searchQuery, "i") },
 			{ email: new RegExp(searchQuery, "i") },
+			{ "agent.name": new RegExp(searchQuery, "i") }, // Add this line to search within the agent.name field
 		];
 	}
 
