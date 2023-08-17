@@ -53,10 +53,17 @@ exports.signup = async (req, res) => {
 		return res
 			.status(400)
 			.json({ error: "Passwords should be 6 characters or more" });
+
 	let userExist = await User.findOne({ email }).exec();
 	if (userExist)
 		return res.status(400).json({
-			error: "User already exists, please try a different email/phone",
+			error: "User already exists, please try a different email",
+		});
+
+	let phoneExist = await User.findOne({ phone }).exec();
+	if (phoneExist)
+		return res.status(400).json({
+			error: "User already exists, please try a different phone",
 		});
 
 	const user = new User(req.body);
@@ -158,6 +165,7 @@ exports.signup = async (req, res) => {
 exports.signin = (req, res) => {
 	const { username, password } = req.body; // 'username' can be either email or phone
 
+	console.log(req.body, "userName");
 	User.findOne(
 		{
 			$or: [{ email: username }, { phone: username }],

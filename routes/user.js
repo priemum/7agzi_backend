@@ -33,6 +33,7 @@ const {
 	reportSummary,
 	listOfStoresAgent,
 	reportSummaryAgent,
+	findDuplicatedFields,
 } = require("../controllers/user");
 
 router.get("/secret/:userId", requireSignin, isAuth, isAdmin, (req, res) => {
@@ -58,6 +59,7 @@ router.get(
 );
 
 router.get("/allUsers/agents/general", allUsersListGeneral);
+router.get("/duplicates/:field", findDuplicatedFields);
 
 router.put(
 	"/user/:updatedUserId/:userId",

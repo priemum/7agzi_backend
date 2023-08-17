@@ -1098,3 +1098,49 @@ exports.reportSummaryAgent = async (req, res) => {
 		res.status(500).send("Internal Server Error");
 	}
 };
+
+exports.findDuplicatedFields = async (req, res) => {
+	const field = req.params.field;
+
+	if (!["email", "phone"].includes(field)) {
+		return res
+			.status(400)
+			.json({ error: "Invalid field. Use 'email' or 'phone'." });
+	}
+
+	try {
+		const duplicates = await User.aggregate([
+			{
+				$group: {
+					_id: `$${field}`,
+					count: { $sum: 1 },
+					ids: { $push: "$_id" },
+				},
+			},
+			{
+				$match: {
+					count: { $gt: 1 },
+				},
+			},
+		]);
+
+		if (duplicates.length === 0) {
+			return res
+				.status(200)
+				.json({ message: `No duplicated ${field}s found.` });
+		}
+
+		const response = duplicates.map((dup) => {
+			return {
+				[field]: dup._id,
+				count: dup.count,
+				ids: dup.ids,
+			};
+		});
+
+		res.status(200).json(response);
+	} catch (error) {
+		console.error("Error finding duplicates:", error);
+		res.status(500).json({ error: error.message });
+	}
+};
