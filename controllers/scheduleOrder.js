@@ -1489,3 +1489,21 @@ exports.employeeFreeSlots = async (req, res) => {
 		});
 	}
 };
+
+exports.listOfBookingUser = (req, res) => {
+	ScheduleOrder.find({
+		phone: req.params.phone,
+	})
+		.populate("user", "_id name email service scheduledTime")
+		.populate("belongsTo", "_id name email storeName createdAt")
+		.sort("-createdAt")
+		.exec((err, orders) => {
+			if (err) {
+				return res.status(400).json({
+					error: "Error to retrieve all orders",
+				});
+			}
+
+			res.json(orders);
+		});
+};

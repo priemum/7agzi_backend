@@ -44,6 +44,7 @@ const {
 	firstAvailableTimeAndEmployee,
 	findFirstAvailableAppointment,
 	employeeFreeSlots,
+	listOfBookingUser,
 } = require("../controllers/scheduleOrder");
 // const { decreaseQuantity } = require("../controllers/employee");
 
@@ -248,6 +249,13 @@ router.get(
 router.get(
 	"/employee-schedule/:employeeId/:customerType/:services/:date/:ownerId",
 	employeeFreeSlots
+);
+
+router.get(
+	"/user/booking/:phone/:userId",
+	requireSignin,
+	isAuth,
+	listOfBookingUser
 );
 
 router.param("userId", userById);
