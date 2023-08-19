@@ -45,6 +45,8 @@ const {
 	findFirstAvailableAppointment,
 	employeeFreeSlots,
 	listOfBookingUser,
+	governorateStats,
+	storeNameStats,
 } = require("../controllers/scheduleOrder");
 // const { decreaseQuantity } = require("../controllers/employee");
 
@@ -250,6 +252,16 @@ router.get(
 	"/employee-schedule/:employeeId/:customerType/:services/:date/:ownerId",
 	employeeFreeSlots
 );
+
+router.get(
+	"/admin/governorate-stats/:userId",
+	requireSignin,
+	isAuth,
+	isBoss,
+	governorateStats
+);
+
+router.get("/admin/stores-stats", storeNameStats);
 
 router.get(
 	"/user/booking/:phone/:userId",

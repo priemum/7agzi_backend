@@ -1495,15 +1495,320 @@ exports.listOfBookingUser = (req, res) => {
 		phone: req.params.phone,
 	})
 		.populate("user", "_id name email service scheduledTime")
-		.populate("belongsTo", "_id name email storeName createdAt")
+		.populate(
+			"belongsTo",
+			"_id name email storeName storeType storeGovernorate phone storeDistrict createdAt"
+		)
 		.sort("-createdAt")
-		.exec((err, orders) => {
+		.exec(async (err, orders) => {
+			// Making this an async function
 			if (err) {
 				return res.status(400).json({
 					error: "Error to retrieve all orders",
 				});
 			}
 
-			res.json(orders);
+			// An async function to fetch the latest StoreManagement record for a user
+			const getLatestStoreManagement = async (userId) => {
+				return await mongoose
+					.model("StoreManagement")
+					.findOne({ belongsTo: userId })
+					.sort("-createdAt")
+					.lean() // To convert the result into a plain object
+					.exec();
+			};
+
+			// Fetch the StoreManagement for each order
+			const ordersWithSettings = await Promise.all(
+				orders.map(async (order) => {
+					const settings = await getLatestStoreManagement(order.belongsTo._id);
+					return {
+						...order.toObject(), // Convert order document to object
+						settings,
+					};
+				})
+			);
+
+			res.json(ordersWithSettings);
 		});
+};
+
+exports.governorateStats = async (req, res) => {
+	try {
+		// 1. Get statistics related to stores from StoreManagement schema
+		const storeStats = await StoreManagement.aggregate([
+			{
+				$sort: { createdAt: -1 },
+			},
+			{
+				$group: {
+					_id: "$belongsTo",
+					activeStore: { $first: "$activeStore" },
+				},
+			},
+			{
+				$group: {
+					_id: "$activeStore",
+					stores: { $push: "$_id" },
+				},
+			},
+			{
+				$lookup: {
+					from: User.collection.name,
+					localField: "stores",
+					foreignField: "_id",
+					as: "user",
+				},
+			},
+			{
+				$unwind: "$user",
+			},
+			{
+				$match: {
+					"user.role": 1000,
+				},
+			},
+			{
+				$group: {
+					_id: "$user.storeGovernorate",
+					StoreCount: { $sum: 1 },
+					activeStores: {
+						$sum: {
+							$cond: [{ $eq: ["$_id", true] }, 1, 0],
+						},
+					},
+					inactiveStores: {
+						$sum: {
+							$cond: [{ $eq: ["$_id", false] }, 1, 0],
+						},
+					},
+				},
+			},
+		]);
+
+		// 2. Get statistics related to bookings from ScheduleOrder schema
+		const orderStats = await ScheduleOrder.aggregate([
+			{
+				$lookup: {
+					from: User.collection.name,
+					localField: "belongsTo",
+					foreignField: "_id",
+					as: "user",
+				},
+			},
+			{
+				$match: {
+					"user.role": 1000,
+				},
+			},
+			{
+				$group: {
+					_id: { $arrayElemAt: ["$user.storeGovernorate", 0] },
+					BookingCount: { $sum: 1 },
+					OnlineBooking: {
+						$sum: {
+							$cond: [{ $eq: ["$BookedFrom", "Online"] }, 1, 0],
+						},
+					},
+					StoreBooking: {
+						$sum: {
+							$cond: [{ $eq: ["$BookedFrom", "Store"] }, 1, 0],
+						},
+					},
+					CancelledBooking: {
+						$sum: {
+							$cond: [{ $eq: ["$status", "Cancelled"] }, 1, 0],
+						},
+					},
+					PaidBooking: {
+						$sum: {
+							$cond: [{ $eq: ["$status", "Paid"] }, 1, 0],
+						},
+					},
+					NotPaidBooking: {
+						$sum: {
+							$cond: [{ $eq: ["$status", "Not Paid"] }, 1, 0],
+						},
+					},
+				},
+			},
+		]);
+
+		// Merge storeStats and orderStats into an array of objects
+		const tempResult = {};
+
+		storeStats.forEach((stat) => {
+			tempResult[stat._id] = {
+				governorate: stat._id,
+				StoreCount: stat.StoreCount,
+				activeStores: stat.activeStores,
+				inactiveStores: stat.inactiveStores,
+			};
+		});
+
+		orderStats.forEach((stat) => {
+			if (!tempResult[stat._id]) {
+				tempResult[stat._id] = { governorate: stat._id };
+			}
+
+			Object.assign(tempResult[stat._id], {
+				BookingCount: stat.BookingCount,
+				OnlineBooking: stat.OnlineBooking,
+				StoreBooking: stat.StoreBooking,
+				CancelledBooking: stat.CancelledBooking,
+				PaidBooking: stat.PaidBooking,
+				NotPaidBooking: stat.NotPaidBooking,
+			});
+		});
+
+		// Convert the temporary result object to the desired array format
+		const resultArray = Object.values(tempResult);
+
+		// Sort the resultArray based on the StoreCount property in descending order
+		resultArray.sort((a, b) => b.StoreCount - a.StoreCount);
+
+		res.json(resultArray);
+	} catch (error) {
+		res.status(500).json({ error: "Error retrieving governorate stats" });
+	}
+};
+
+exports.storeNameStats = async (req, res) => {
+	try {
+		// 1. Get statistics related to stores from StoreManagement schema
+		const storeStats = await StoreManagement.aggregate([
+			{
+				$sort: { createdAt: -1 },
+			},
+			{
+				$group: {
+					_id: "$belongsTo",
+					activeStore: { $first: "$activeStore" },
+				},
+			},
+			{
+				$group: {
+					_id: "$activeStore",
+					stores: { $push: "$_id" },
+				},
+			},
+			{
+				$lookup: {
+					from: User.collection.name,
+					localField: "stores",
+					foreignField: "_id",
+					as: "user",
+				},
+			},
+			{
+				$unwind: "$user",
+			},
+			{
+				$match: {
+					"user.role": 1000,
+				},
+			},
+			{
+				$group: {
+					_id: "$user.storeName",
+					StoreCount: { $sum: 1 },
+					activeStores: {
+						$sum: {
+							$cond: [{ $eq: ["$_id", true] }, 1, 0],
+						},
+					},
+					inactiveStores: {
+						$sum: {
+							$cond: [{ $eq: ["$_id", false] }, 1, 0],
+						},
+					},
+				},
+			},
+		]);
+
+		// 2. Get statistics related to bookings from ScheduleOrder schema
+		const orderStats = await ScheduleOrder.aggregate([
+			{
+				$lookup: {
+					from: User.collection.name,
+					localField: "belongsTo",
+					foreignField: "_id",
+					as: "user",
+				},
+			},
+			{
+				$match: {
+					"user.role": 1000,
+				},
+			},
+			{
+				$group: {
+					_id: { $arrayElemAt: ["$user.storeName", 0] },
+					BookingCount: { $sum: 1 },
+					OnlineBooking: {
+						$sum: {
+							$cond: [{ $eq: ["$BookedFrom", "Online"] }, 1, 0],
+						},
+					},
+					StoreBooking: {
+						$sum: {
+							$cond: [{ $eq: ["$BookedFrom", "Store"] }, 1, 0],
+						},
+					},
+					CancelledBooking: {
+						$sum: {
+							$cond: [{ $eq: ["$status", "Cancelled"] }, 1, 0],
+						},
+					},
+					PaidBooking: {
+						$sum: {
+							$cond: [{ $eq: ["$status", "Paid"] }, 1, 0],
+						},
+					},
+					NotPaidBooking: {
+						$sum: {
+							$cond: [{ $eq: ["$status", "Not Paid"] }, 1, 0],
+						},
+					},
+				},
+			},
+		]);
+
+		// Merge storeStats and orderStats into an array of objects
+		const tempResult = {};
+
+		storeStats.forEach((stat) => {
+			tempResult[stat._id] = {
+				storeName: stat._id,
+				StoreCount: stat.StoreCount,
+				activeStores: stat.activeStores,
+				inactiveStores: stat.inactiveStores,
+			};
+		});
+
+		orderStats.forEach((stat) => {
+			if (!tempResult[stat._id]) {
+				tempResult[stat._id] = { storeName: stat._id };
+			}
+
+			Object.assign(tempResult[stat._id], {
+				BookingCount: stat.BookingCount,
+				OnlineBooking: stat.OnlineBooking,
+				StoreBooking: stat.StoreBooking,
+				CancelledBooking: stat.CancelledBooking,
+				PaidBooking: stat.PaidBooking,
+				NotPaidBooking: stat.NotPaidBooking,
+			});
+		});
+
+		// Convert the temporary result object to the desired array format
+		const resultArray = Object.values(tempResult);
+
+		// Sort the resultArray based on the StoreBooking property in descending order
+		resultArray.sort((a, b) => b.StoreBooking - a.StoreBooking);
+
+		res.json(resultArray);
+	} catch (error) {
+		res.status(500).json({ error: "Error retrieving store name stats" });
+	}
 };
