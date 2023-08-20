@@ -84,6 +84,10 @@ exports.retriggerPayment = (req, res) => {
 	let paymentMethodToken = req.body.paymentMethodToken; // replace this with the token you stored
 	let countryFromClient = req.body.country; // replace this with the country you stored
 
+	console.log(req.body.country, "country");
+	console.log(req.body.amount, "amount");
+	console.log(req.body, "req.body");
+
 	// Define the Merchant Account Id based on the country
 	let merchantAccountId = process.env.BRAINTREE_MERCHANT_ACCOUNT_US; // Default to USD merchant account ID
 
@@ -100,7 +104,7 @@ exports.retriggerPayment = (req, res) => {
 			options: {
 				submitForSettlement: true,
 			},
-			merchantAccountId: merchantAccountId,
+			merchantAccountId: process.env.BRAINTREE_MERCHANT_ACCOUNT_EGY,
 		},
 		(error, result) => {
 			if (error) {
