@@ -268,7 +268,7 @@ exports.listFrontendByLocation = async (req, res) => {
 		longitude: parseFloat(req.params.lon),
 	};
 	const resultsPerPage = parseInt(req.params.pagination, 10);
-	const page = parseInt(req.params.page, 10) || 1;
+	const page = parseInt(req.params.page, 13) || 1;
 
 	try {
 		let stores = await StoreManagement.aggregate([
