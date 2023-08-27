@@ -615,16 +615,69 @@ exports.searchStore = async (req, res) => {
 				$sort: { createdAt: -1 }, // Sort by createdAt in descending order (newest first)
 			},
 			{
-				$group: {
-					_id: "$addStoreName", // Group by addStoreName
-					doc: { $first: "$$ROOT" }, // Take the first document in each group (newest by createdAt)
+				$lookup: {
+					from: "users",
+					localField: "belongsTo",
+					foreignField: "_id",
+					as: "belongsTo",
 				},
 			},
 			{
-				$replaceRoot: { newRoot: "$doc" }, // Replace root with the selected documents
+				$unwind: "$belongsTo",
+			},
+			{
+				$replaceRoot: { newRoot: "$$ROOT" }, // Keep the root document
 			},
 			{
 				$match: { activeStore: true }, // Only consider active stores
+			},
+			{
+				$project: {
+					_id: 1,
+					addStoreName: 1,
+					addStoreNameArabic: 1,
+					storeGovernorate: 1,
+					storeDistrict: 1,
+					addStoreLogo: 1,
+					storeThumbnail: 1,
+					longitude: 1,
+					daysStoreClosed: 1,
+					datesStoreClosed: 1,
+					activeOnlineBooking: 1,
+					activeStore: 1,
+					storePhone: 1,
+					loyaltyPointsAward: 1,
+					discountPercentage: 1,
+					onlineServicesFees: 1,
+					salonGrade: 1,
+					workersGender: 1,
+					activateWhatsAppNotification: 1,
+					branchesCount: 1,
+					stylistsCount: 1,
+					chairsCount: 1,
+					cashPayment: 1,
+					visaPayment: 1,
+					airConditioned: 1,
+					parking: 1,
+					fake: 1,
+					belongsTo: {
+						_id: "$belongsTo._id",
+						name: "$belongsTo.name",
+						email: "$belongsTo.email",
+						phone: "$belongsTo.phone",
+						user: "$belongsTo.user",
+						activeUser: "$belongsTo.activeUser",
+						storeName: "$belongsTo.storeName",
+						storeCountry: "$belongsTo.storeCountry",
+						storeGovernorate: "$belongsTo.storeGovernorate",
+						storeAddress: "$belongsTo.storeAddress",
+						storeDistrict: "$belongsTo.storeDistrict",
+						storeType: "$belongsTo.storeType",
+						subscribed: "$belongsTo.subscribed",
+						platFormShare: "$belongsTo.platFormShare",
+						platFormShareToken: "$belongsTo.platFormShareToken",
+					},
+				},
 			},
 		]);
 
