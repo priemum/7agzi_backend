@@ -591,3 +591,48 @@ exports.listFrontendByLocation2 = async (req, res) => {
 		res.status(400).json({ error: err });
 	}
 };
+
+exports.searchStore = async (req, res) => {
+	const keyword = req.params.keyword;
+
+	console.log(keyword, "keyword");
+
+	try {
+		const query = {
+			$or: [
+				{ addStoreName: { $regex: keyword, $options: "i" } }, // Case-insensitive partial matching
+				{ addStoreNameArabic: { $regex: keyword, $options: "i" } },
+				{ storeGovernorate: { $regex: keyword, $options: "i" } },
+				{ storeDistrict: { $regex: keyword, $options: "i" } },
+			],
+		};
+
+		const stores = await StoreManagement.aggregate([
+			{
+				$match: query,
+			},
+			{
+				$sort: { createdAt: -1 }, // Sort by createdAt in descending order (newest first)
+			},
+			{
+				$group: {
+					_id: "$addStoreName", // Group by addStoreName
+					doc: { $first: "$$ROOT" }, // Take the first document in each group (newest by createdAt)
+				},
+			},
+			{
+				$replaceRoot: { newRoot: "$doc" }, // Replace root with the selected documents
+			},
+			{
+				$match: { activeStore: true }, // Only consider active stores
+			},
+		]);
+
+		res.status(200).json(stores);
+	} catch (error) {
+		console.error(error);
+		res
+			.status(500)
+			.json({ message: "An error occurred while searching for stores." });
+	}
+};

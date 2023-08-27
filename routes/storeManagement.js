@@ -22,6 +22,7 @@ const {
 	countActiveStores,
 	migrateLocation,
 	listFrontendByLocation2,
+	searchStore,
 } = require("../controllers/storeManagement");
 
 router.post(
@@ -62,6 +63,8 @@ router.get(
 );
 
 router.get("/migrateLocation", migrateLocation);
+
+router.get("/store-search/:keyword", searchStore);
 
 router.param("userId", userById);
 router.param("serviceId", StoreManagementById);

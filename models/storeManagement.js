@@ -133,6 +133,11 @@ const storeManagement = new mongoose.Schema(
 			default: false,
 		},
 
+		fake: {
+			type: Boolean,
+			default: false,
+		},
+
 		belongsTo: { type: ObjectId, ref: "User" },
 	},
 	{ timestamps: true }
