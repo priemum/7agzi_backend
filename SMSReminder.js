@@ -37,11 +37,16 @@ exports.scheduler = (req, res) => {
 					"Africa/Cairo"
 				);
 
+				// Calculate the time difference in minutes
+				const duration = moment
+					.duration(scheduledTime.diff(currentMoment))
+					.asMinutes();
+
 				return (
 					scheduledDate.isSame(currentMoment, "day") &&
 					!i.reminderTextSend &&
-					scheduledTime.hours() === hoursNow &&
-					scheduledTime.minutes() - 30 <= minutesNow
+					duration <= 60 &&
+					duration >= 30
 				);
 			});
 
@@ -75,7 +80,7 @@ exports.scheduler = (req, res) => {
 							sms.save((err, data) => {
 								if (err) {
 									return res.status(400).json({
-										err: "Error in sms creation",
+										err: "Error in SMS creation",
 									});
 								}
 							});
@@ -94,7 +99,7 @@ exports.scheduler = (req, res) => {
 								})
 								.then((message) =>
 									console.log(
-										`Your message was successfully sent to ${user.phone}`
+										`Your message was successfully sent to ${i.phone}`
 									)
 								)
 								.catch((err) => console.log(err));
