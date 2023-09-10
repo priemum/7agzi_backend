@@ -689,3 +689,124 @@ exports.searchStore = async (req, res) => {
 			.json({ message: "An error occurred while searching for stores." });
 	}
 };
+
+exports.listOfStoresGradeA = async (req, res) => {
+	const userLocation = {
+		latitude: parseFloat(req.params.lat),
+		longitude: parseFloat(req.params.lon),
+	};
+	const resultsPerPage = parseInt(req.params.pagination, 10);
+	const page = parseInt(req.params.page, 10) || 1;
+
+	try {
+		let stores = await StoreManagement.aggregate([
+			{ $match: { activeStore: true, salonGrade: { $in: ["a", "b"] } } },
+			{ $sort: { salonGrade: 1, belongsTo: 1, createdAt: -1 } },
+			{
+				$group: {
+					_id: "$belongsTo",
+					doc: { $first: "$$ROOT" },
+				},
+			},
+			{ $replaceRoot: { newRoot: "$doc" } },
+		]);
+
+		stores = await StoreManagement.populate(stores, {
+			path: "belongsTo",
+			select:
+				"_id name email phone user activeUser storeName storeCountry storeGovernorate storeAddress storeDistrict storeType subscribed platFormShare platFormShareToken",
+		});
+
+		stores = await Promise.all(
+			stores.map(async (store) => {
+				try {
+					const storeLocation = {
+						latitude: parseFloat(store.latitude),
+						longitude: parseFloat(store.longitude),
+					};
+					const distance = geolib.getDistance(userLocation, storeLocation);
+
+					return {
+						...store,
+						distance,
+					};
+				} catch (error) {
+					// Handle the error if needed
+				}
+			})
+		);
+
+		stores = stores.filter((store) => store !== undefined);
+		stores.sort((a, b) => a.distance - b.distance);
+
+		// Calculate travel times for the first 4 stores only
+		for (let i = 0; i < 0 && i < stores.length; i++) {
+			const storeLocation = {
+				latitude: parseFloat(stores[i].latitude),
+				longitude: parseFloat(stores[i].longitude),
+			};
+
+			const { driving, walking } = await calculateTravelTimes(
+				userLocation,
+				storeLocation
+			);
+
+			stores[i].walkingTime = walking;
+			stores[i].drivingTime = driving;
+		}
+
+		const filter = createFilter(req.params);
+
+		stores = stores.filter((store) => {
+			for (let key in filter) {
+				if (
+					key === "services" &&
+					!store.services.some(
+						(service) => service.name === filter[key].$elemMatch.name
+					)
+				) {
+					return false;
+				} else if (store.belongsTo[key] !== filter[key]) {
+					return false;
+				}
+			}
+			return true;
+		});
+
+		const startIndex = (page - 1) * resultsPerPage;
+		const endIndex = page * resultsPerPage;
+		const total = stores.length;
+		stores = stores.slice(startIndex, endIndex);
+
+		for (let i = 0; i < stores.length; i++) {
+			if (stores[i].belongsTo && stores[i].belongsTo._id) {
+				stores[i].services = await Services.find({
+					belongsTo: mongoose.Types.ObjectId(stores[i].belongsTo._id),
+					activeService: true,
+				});
+			} else {
+				// Handle the error if needed
+			}
+		}
+
+		let pagination = {};
+		if (endIndex < total) {
+			pagination.next = {
+				page: page + 1,
+				limit: resultsPerPage,
+			};
+		}
+
+		if (startIndex > 0) {
+			pagination.prev = {
+				page: page - 1,
+				limit: resultsPerPage,
+			};
+		}
+
+		res.json({ stores, pagination });
+	} catch (err) {
+		console.log(err, "err");
+		res.status(400).json({ error: err });
+	}
+};

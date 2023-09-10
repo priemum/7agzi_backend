@@ -23,6 +23,7 @@ const {
 	migrateLocation,
 	listFrontendByLocation2,
 	searchStore,
+	listOfStoresGradeA,
 } = require("../controllers/storeManagement");
 
 router.post(
@@ -60,6 +61,11 @@ router.get(
 router.get(
 	"/store-management2/pagination2/:lat/:lon/:country/:governorate/:district/:storeType/:service/:pagination/:page",
 	listFrontendByLocation2
+);
+
+router.get(
+	"/store-management-a-b/pagination2/:lat/:lon/:country/:governorate/:district/:storeType/:service/:pagination/:page",
+	listOfStoresGradeA
 );
 
 router.get("/migrateLocation", migrateLocation);
