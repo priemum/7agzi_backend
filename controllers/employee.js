@@ -376,3 +376,45 @@ exports.remove = (req, res) => {
 		});
 	});
 };
+
+exports.updateEmployeeNameBulk = async (req, res) => {
+	try {
+		// Find all employees where employeeName matches any of the stylist names
+		const employees = await Employee.find({
+			employeeName: {
+				$in: ["stylist 1", "stylist 2", "stylist 3", "stylist 4"],
+			},
+		}).populate("belongsTo");
+
+		console.log(employees.length);
+
+		if (!employees.length) {
+			return res.status(404).json({ error: "No matching employees found." });
+		}
+
+		const bulkUpdates = employees.map(async (employee) => {
+			// Get storeName from the populated belongsTo field
+			const storeName = employee.belongsTo.storeName;
+
+			if (!storeName) {
+				return Promise.resolve(); // Skip this iteration if storeName is not available
+			}
+
+			// Update employeeName
+			employee.employeeName = `${employee.employeeName}_${storeName}`;
+
+			// Save the updated employee document
+			return employee.save();
+		});
+
+		// Execute all the updates in parallel
+		await Promise.all(bulkUpdates);
+
+		res.status(200).json({ message: "Bulk update completed successfully." });
+	} catch (err) {
+		res.status(500).json({
+			error: "An error occurred during the bulk update.",
+			details: err,
+		});
+	}
+};

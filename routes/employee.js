@@ -8,7 +8,7 @@ const {
 	isAdmin,
 	isEmployee,
 } = require("../controllers/auth");
-const {userById} = require("../controllers/user");
+const { userById } = require("../controllers/user");
 
 const {
 	create,
@@ -27,6 +27,7 @@ const {
 	updateByStylist,
 	listForEmployee,
 	employeeByPhone,
+	updateEmployeeNameBulk,
 } = require("../controllers/employee");
 
 router.post("/employee/create/:userId", requireSignin, isAuth, isAdmin, create);
@@ -64,6 +65,7 @@ router.put("/views", viewsByUser);
 
 //viewsCounter
 router.put("/viewscounter", viewsCounter);
+router.put("/update-names-bulk", updateEmployeeNameBulk);
 
 // rating
 router.put("/employee/star/:employeeId/:userId", requireSignin, employeeStar);
