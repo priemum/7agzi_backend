@@ -80,7 +80,7 @@ router.get("/generate-sitemap", async (req, res) => {
 		links.push({
 			url: `/employee/${employee.employeeName.replace(/ /g, "-")}/${
 				employee._id
-			}`,
+			}${employee._id}${employee._id}`,
 			changefreq: "weekly",
 			priority: 0.8,
 		});
