@@ -1812,3 +1812,24 @@ exports.storeNameStats = async (req, res) => {
 		res.status(500).json({ error: "Error retrieving store name stats" });
 	}
 };
+
+exports.listFutureBookings = (req, res) => {
+	// Get today's date in the format "MM/DD/YYYY"
+	const today = moment().format("MM/DD/YYYY");
+
+	ScheduleOrder.find({
+		belongsTo: mongoose.Types.ObjectId(req.params.ownerId),
+		scheduledDate: {
+			$gte: today, // $gte means "greater than or equal to"
+		},
+	})
+		.populate("belongsTo", "name email phone storeName")
+		.exec((err, data) => {
+			if (err) {
+				return res.status(400).json({
+					error: err,
+				});
+			}
+			res.json(data);
+		});
+};
