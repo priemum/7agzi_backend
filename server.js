@@ -39,7 +39,7 @@ readdirSync("./routes").map((r) => app.use("/api", require(`./routes/${r}`)));
 
 const port = process.env.PORT || 8050;
 
-cron.schedule("0 */15 * * * *", scheduler);
+// cron.schedule("0 */15 * * * *", scheduler);
 
 // Schedule the sitemap generation every 7 days
 // cron.schedule("0 0 0 */7 * *", () => {
