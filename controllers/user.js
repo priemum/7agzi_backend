@@ -1147,6 +1147,8 @@ exports.findDuplicatedFields = async (req, res) => {
 
 exports.removeUser = (req, res) => {
 	let user = req.user;
+	console.log(req.user, "req.user");
+	console.log(user, "user");
 	user.remove((err, deletedUser) => {
 		if (err) {
 			return res.status(400).json({
