@@ -1146,14 +1146,15 @@ exports.findDuplicatedFields = async (req, res) => {
 };
 
 exports.removeUser = (req, res) => {
-	const hero = req.user;
-
-	hero.remove((err, data) => {
+	let user = req.user;
+	user.remove((err, deletedUser) => {
 		if (err) {
 			return res.status(400).json({
-				err: "user while removing",
+				error: console.log(err, "err remove"),
 			});
 		}
-		res.json({ message: "user deleted" });
+		res.json({
+			manage: "User was successfully deleted",
+		});
 	});
 };
