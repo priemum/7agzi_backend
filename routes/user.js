@@ -34,6 +34,7 @@ const {
 	listOfStoresAgent,
 	reportSummaryAgent,
 	findDuplicatedFields,
+	removeUser,
 } = require("../controllers/user");
 
 router.get("/secret/:userId", requireSignin, isAuth, isAdmin, (req, res) => {
@@ -122,6 +123,8 @@ router.get(
 	isAgent,
 	reportSummaryAgent
 );
+
+router.delete("/delete-user/:userId", requireSignin, isAuth, removeUser);
 
 router.param("userId", userById);
 router.param("phoneNumber", userByPhoneNumber);
