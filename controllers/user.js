@@ -430,8 +430,6 @@ exports.allUsersListBoss = (req, res) => {
 exports.updateByBoss = (req, res) => {
 	// console.log("UPDATE USER - req.user", req.user, "UPDATE DATA", req.body);
 
-	console.log(req.body, "updateByBoss");
-
 	const {
 		name,
 		password,
@@ -1147,16 +1145,24 @@ exports.findDuplicatedFields = async (req, res) => {
 
 exports.removeUser = (req, res) => {
 	let user = req.user;
+
 	console.log(req.user, "req.user");
-	console.log(user, "user");
+	console.log(req.profile, "req.user");
+
+	if (!user) {
+		return res.status(400).json({
+			error: "No user found in request.",
+		});
+	}
+
 	user.remove((err, deletedUser) => {
 		if (err) {
 			return res.status(400).json({
-				error: console.log(err, "err remove"),
+				error: err,
 			});
 		}
 		res.json({
-			manage: "User was successfully deleted",
+			message: "User was successfully deleted.",
 		});
 	});
 };
