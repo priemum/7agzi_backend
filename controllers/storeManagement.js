@@ -312,7 +312,7 @@ exports.listFrontendByLocation = async (req, res) => {
 		stores.sort((a, b) => a.distance - b.distance);
 
 		// Calculate travel times for the first 4 stores only
-		for (let i = 0; i < 1 && i < stores.length; i++) {
+		for (let i = 0; i < 0 && i < stores.length; i++) {
 			const storeLocation = {
 				latitude: parseFloat(stores[i].latitude),
 				longitude: parseFloat(stores[i].longitude),

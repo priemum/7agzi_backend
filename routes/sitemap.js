@@ -70,6 +70,48 @@ router.get("/generate-sitemap", async (req, res) => {
 			changefreq: "monthly",
 			priority: 0.8,
 		},
+		{
+			url: "/register-your-ecommerce-shop",
+			lastmod: currentDate,
+			changefreq: "monthly",
+			priority: 0.5,
+		},
+		{
+			url: "/xlookpro-apps",
+			lastmod: currentDate,
+			changefreq: "monthly",
+			priority: 0.5,
+		},
+		{
+			url: "/schedule/haircut",
+			lastmod: currentDate,
+			changefreq: "monthly",
+			priority: 0.5,
+		},
+		{
+			url: "/schedule/beard-shaving",
+			lastmod: currentDate,
+			changefreq: "monthly",
+			priority: 0.5,
+		},
+		{
+			url: "/schedule/bundle",
+			lastmod: currentDate,
+			changefreq: "monthly",
+			priority: 0.5,
+		},
+		{
+			url: "/schedule/skin-care",
+			lastmod: currentDate,
+			changefreq: "monthly",
+			priority: 0.5,
+		},
+		{
+			url: "/schedule/groom",
+			lastmod: currentDate,
+			changefreq: "monthly",
+			priority: 0.5,
+		},
 		// Add the rest of your static links here
 	];
 

@@ -5,15 +5,15 @@ const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const BarbershopName = "Hair Salon";
-const BarbershopWebsite = "http://hairsalondemo.infinite-apps.com/";
-const userDashboardLink = "http://hairsalondemo.infinite-apps.com/dashboard";
-const contactusPageLink = "http://hairsalondemo.infinite-apps.com/contact";
-const supportEmail = "info@hair-salon.com";
-const fromEmail = "noreply@infinite-apps.com";
+const BarbershopWebsite = "https://xlookpro.com";
+const userDashboardLink = "https://xlookpro.com/dashboard";
+const contactusPageLink = "https://xlookpro.com/contact";
+const supportEmail = "info@xlookpro.com";
+const fromEmail = "noreply@xlookpro.com";
 const defaultEmail = "ahmed.abdelrazak@infinite-apps.com";
-const phoneNumber1 = "(999) 222-1111";
-const phoneNumber2 = "(999) 222-3322";
-const shopAddress = "123 main street, LA, CA";
+const phoneNumber1 = "+201098168674";
+const phoneNumber2 = "+201098168674";
+const shopAddress = "Crestline, California, USA";
 const shopLogo =
 	"https://res.cloudinary.com/infiniteapps/image/upload/v1634425351/Hairsalon/logo_p62voj.png";
 

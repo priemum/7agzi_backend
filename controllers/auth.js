@@ -333,6 +333,19 @@ exports.isInStore = (req, res, next) => {
 	next();
 };
 
+exports.isStoreOwner = (req, res, next) => {
+	if (
+		req.profile.role !== 1000 &&
+		req.profile.role !== 10000 &&
+		req.profile.role !== 5000
+	) {
+		return res.status(403).json({
+			error: "Admin resource! access denied",
+		});
+	}
+	next();
+};
+
 // exports.forgotPassword = (req, res) => {
 // 	const { email } = req.body;
 
