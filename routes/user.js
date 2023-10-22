@@ -35,6 +35,8 @@ const {
 	reportSummaryAgent,
 	findDuplicatedFields,
 	removeUser,
+	likeProduct,
+	unlikeProduct,
 } = require("../controllers/user");
 
 router.get("/secret/:userId", requireSignin, isAuth, isAdmin, (req, res) => {
@@ -46,6 +48,10 @@ router.get("/secret/:userId", requireSignin, isAuth, isAdmin, (req, res) => {
 // like unlike
 router.put("/user/like", requireSignin, like);
 router.put("/user/unlike", requireSignin, unlike);
+
+router.put("/product/user/like", requireSignin, likeProduct);
+router.put("/product/user/unlike", requireSignin, unlikeProduct);
+
 router.get("/user/:userId", requireSignin, read);
 router.get("/user/phone/:phoneNumber", readByPhoneNumber);
 router.put("/user/:userId", requireSignin, isAuth, update);

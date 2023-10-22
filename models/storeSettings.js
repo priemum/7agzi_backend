@@ -56,6 +56,7 @@ const storeSettings = new mongoose.Schema(
 			default: false,
 		},
 		belongsTo: { type: ObjectId, ref: "User" },
+
 		activeEcomStore: {
 			type: Boolean,
 			default: false,

@@ -327,6 +327,41 @@ exports.unlike = (req, res) => {
 	});
 };
 
+exports.likeProduct = (req, res) => {
+	User.findByIdAndUpdate(
+		req.body.userId,
+		{ $push: { likesUser: req.body.productId } },
+		{ new: true }
+	)
+		.populate("likesUser", "_id productName")
+
+		.exec((err, result) => {
+			if (err) {
+				return res.status(400).json({
+					error: err,
+				});
+			} else {
+				res.json(result);
+			}
+		});
+};
+
+exports.unlikeProduct = (req, res) => {
+	User.findByIdAndUpdate(
+		req.body.userId,
+		{ $pull: { likesUser: req.body.productId } },
+		{ new: true }
+	).exec((err, result) => {
+		if (err) {
+			return res.status(400).json({
+				error: err,
+			});
+		} else {
+			res.json(result);
+		}
+	});
+};
+
 exports.updateUserByAdminClients = (req, res) => {
 	User.updateOne(
 		{ _id: req.body.clientUserId },

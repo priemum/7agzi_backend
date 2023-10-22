@@ -105,22 +105,32 @@ const productSchema = new mongoose.Schema(
 		images: {
 			type: Array,
 		},
+
 		relatedProducts: [
 			{
 				type: ObjectId,
 				ref: "Product",
 			},
 		],
+
 		image: {
 			type: String,
 		},
+
 		shipping: {
 			type: Boolean,
 			default: true,
 		},
+
 		color: {
 			type: String,
 		},
+
+		size: {
+			type: String,
+			default: "no size",
+		},
+
 		activeProduct: {
 			type: Boolean,
 			default: true,

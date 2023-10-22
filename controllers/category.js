@@ -56,7 +56,7 @@ exports.update = (req, res) => {
 exports.list = (req, res) => {
 	const userId = mongoose.Types.ObjectId(req.params.userId);
 
-	Category.find({ belongsTo: userId }).exec((err, data) => {
+	Category.find().exec((err, data) => {
 		if (err) {
 			return res.status(400).json({
 				error: err,

@@ -20,6 +20,9 @@ const {
 	productStar,
 	listBySearch,
 	listSearch,
+	paginatedProducts,
+	distinctCategories,
+	distinctGenders,
 } = require("../controllers/product");
 
 router.post(
@@ -43,12 +46,12 @@ router.get("/products/search", listSearch);
 router.get("/products/:userId", listProductsNoFilter);
 router.get("/product/:productId", read);
 // like unlike
-router.put("/post/like", requireSignin, like);
-router.put("/post/unlike", requireSignin, unlike);
+router.put("/product/post/like", requireSignin, like);
+router.put("/product/post/unlike", requireSignin, unlike);
 
 // comment uncomment
-router.put("/post/comment", requireSignin, comment);
-router.put("/post/uncomment", requireSignin, uncomment);
+router.put("/product/post/comment", requireSignin, comment);
+router.put("/product/post/uncomment", requireSignin, uncomment);
 
 //views
 router.put("/views", viewsByUser);
@@ -58,6 +61,15 @@ router.put("/viewscounter", viewsCounter);
 
 // rating
 router.put("/product/star/:productId/:userId", requireSignin, productStar);
+
+router.get(
+	"/all-products/:categories/:subcategories/:gender/:size/:pagination/:page",
+	paginatedProducts
+);
+
+//distinct values
+router.get("/all-categories", distinctCategories);
+router.get("/all-genders", distinctGenders);
 
 router.param("userId", userById);
 router.param("productId", productById);

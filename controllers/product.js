@@ -1,7 +1,9 @@
 /** @format */
 
 const Product = require("../models/product");
+const Category = require("../models/category");
 const User = require("../models/user");
+const StoreSettings = require("../models/storeSettings");
 const mongoose = require("mongoose");
 
 exports.productById = (req, res, next, id) => {
@@ -411,4 +413,137 @@ exports.decreaseQuantity = (req, res, next) => {
 		}
 		next();
 	});
+};
+
+exports.paginatedProducts = async (req, res) => {
+	const {
+		categories,
+		subcategories,
+		gender,
+		size,
+		pagination = 20,
+		page = 1,
+	} = req.params;
+
+	// Filter conditions
+	let filterConditions = {};
+
+	// Fetch the latest active stores based on createdAt
+	const activeStores = await StoreSettings.aggregate([
+		{ $match: { activeEcomStore: true } },
+		{ $sort: { createdAt: -1 } },
+		{ $group: { _id: "$belongsTo", lastAddedAt: { $first: "$createdAt" } } },
+	]);
+
+	const activeStoreIds = activeStores.map((store) => store._id);
+
+	// Only consider products that belong to active e-commerce stores.
+	filterConditions.belongsTo = { $in: activeStoreIds };
+
+	// Only consider products that are active.
+	filterConditions.activeProduct = true;
+
+	if (categories && categories !== "undefined") {
+		const categoryNames = categories.split(",");
+		const categoryIds = await Category.find({
+			categoryName: { $in: categoryNames },
+		})
+			.select("_id")
+			.lean();
+
+		const ids = categoryIds.map((cat) => cat._id);
+		filterConditions.category = { $in: ids };
+	}
+
+	if (gender !== "undefined") {
+		filterConditions.gender = gender;
+	}
+
+	if (size !== "undefined") {
+		filterConditions.size = size;
+	}
+
+	// Pagination logic
+	const limit = parseInt(pagination);
+	const skip = (parseInt(page) - 1) * limit;
+
+	try {
+		const products = await Product.find(filterConditions)
+			// .select("productName price image")
+			.populate(
+				"category",
+				"categoryName categoryName_Arabic categorySlug categorySlug_Arabic"
+			)
+			.skip(skip)
+			.limit(limit)
+			.exec();
+
+		const totalProducts = await Product.countDocuments(filterConditions);
+
+		res.json({
+			products,
+			total: totalProducts,
+			page,
+			limit,
+			totalPages: Math.ceil(totalProducts / limit),
+		});
+	} catch (err) {
+		res.status(500).json({ error: "Failed to fetch products." });
+	}
+};
+
+exports.distinctCategories = async (req, res) => {
+	try {
+		// Fetch the latest active stores based on createdAt
+		const activeStores = await StoreSettings.aggregate([
+			{ $match: { activeEcomStore: true } },
+			{ $sort: { createdAt: -1 } },
+			{ $group: { _id: "$belongsTo", lastAddedAt: { $first: "$createdAt" } } },
+		]);
+
+		const activeStoreIds = activeStores.map((store) => store._id);
+
+		// Get distinct categories for products that belong to active e-commerce stores and are active products.
+		const distinctCategoriesIds = await Product.distinct("category", {
+			belongsTo: { $in: activeStoreIds },
+			activeProduct: true,
+		});
+
+		// Fetch categories with categoryStatus as true
+		const categories = await Category.find({
+			_id: { $in: distinctCategoriesIds },
+			categoryStatus: true,
+		}).lean();
+
+		res.json({
+			categories: categories,
+		});
+	} catch (err) {
+		res.status(500).json({ error: "Failed to fetch distinct categories." });
+	}
+};
+
+exports.distinctGenders = async (req, res) => {
+	try {
+		// Fetch the latest active stores based on createdAt
+		const activeStores = await StoreSettings.aggregate([
+			{ $match: { activeEcomStore: true } },
+			{ $sort: { createdAt: -1 } },
+			{ $group: { _id: "$belongsTo", lastAddedAt: { $first: "$createdAt" } } },
+		]);
+
+		const activeStoreIds = activeStores.map((store) => store._id);
+
+		// Get distinct genders for products that belong to active e-commerce stores and are active products.
+		const distinctGenders = await Product.distinct("gender", {
+			belongsTo: { $in: activeStoreIds },
+			activeProduct: true,
+		});
+
+		res.json({
+			genders: distinctGenders,
+		});
+	} catch (err) {
+		res.status(500).json({ error: "Failed to fetch distinct genders." });
+	}
 };

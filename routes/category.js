@@ -34,14 +34,14 @@ router.put(
 );
 
 router.delete(
-	"/category/:categoryId/:userId",
+	"/category/:categoryId",
 	requireSignin,
 	isAuth,
 	isStoreOwner,
 	remove
 );
 
-router.get("/categories/:userId", list);
+router.get("/categories", list);
 router.get("/category/subs/:_id", getSubs);
 
 router.param("userId", userById);
