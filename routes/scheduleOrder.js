@@ -48,6 +48,7 @@ const {
 	governorateStats,
 	storeNameStats,
 	listFutureBookings,
+	bookingSummary,
 } = require("../controllers/scheduleOrder");
 // const { decreaseQuantity } = require("../controllers/employee");
 
@@ -269,6 +270,14 @@ router.get(
 	requireSignin,
 	isAuth,
 	listOfBookingUser
+);
+
+router.get(
+	"/booking-summary-boss/:userId",
+	requireSignin,
+	isAuth,
+	isBoss,
+	bookingSummary
 );
 
 router.get("/future-bookings/:ownerId", listFutureBookings);

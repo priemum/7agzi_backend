@@ -34,6 +34,11 @@ const storeSettings = new mongoose.Schema(
 			type: Number,
 			trim: true,
 		},
+		shippingFees: {
+			type: Number,
+			trim: true,
+			default: 0,
+		},
 		addStoreLogo: {
 			type: Array,
 		},

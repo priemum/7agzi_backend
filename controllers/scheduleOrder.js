@@ -1833,3 +1833,65 @@ exports.listFutureBookings = (req, res) => {
 			res.json(data);
 		});
 };
+
+exports.bookingSummary = async (req, res) => {
+	try {
+		const todayStart = new Date();
+		todayStart.setHours(0, 0, 0, 0);
+
+		const todayEnd = new Date(todayStart);
+		todayEnd.setHours(23, 59, 59, 999);
+
+		const yesterdayStart = new Date(todayStart);
+		yesterdayStart.setDate(todayStart.getDate() - 1);
+
+		const yesterdayEnd = new Date(yesterdayStart);
+		yesterdayEnd.setHours(23, 59, 59, 999);
+
+		const last7daysStart = new Date(todayStart);
+		last7daysStart.setDate(todayStart.getDate() - 7);
+
+		const last30daysStart = new Date(todayStart);
+		last30daysStart.setDate(todayStart.getDate() - 30);
+
+		const todayBookings = await ScheduleOrder.countDocuments({
+			createdAt: {
+				$gte: todayStart,
+				$lte: todayEnd,
+			},
+		});
+
+		const yesterdayBookings = await ScheduleOrder.countDocuments({
+			createdAt: {
+				$gte: yesterdayStart,
+				$lte: yesterdayEnd,
+			},
+		});
+
+		const last7daysBookings = await ScheduleOrder.countDocuments({
+			createdAt: {
+				$gte: last7daysStart,
+				$lte: todayEnd,
+			},
+		});
+
+		const last30DaysBooking = await ScheduleOrder.countDocuments({
+			createdAt: {
+				$gte: last30daysStart,
+				$lte: todayEnd,
+			},
+		});
+
+		const OverallBookings = await ScheduleOrder.countDocuments({});
+
+		return res.json({
+			todayBookings,
+			yesterdayBookings,
+			last7daysBookings,
+			last30DaysBooking,
+			OverallBookings,
+		});
+	} catch (err) {
+		return res.status(500).json({ error: "Something went wrong" });
+	}
+};
