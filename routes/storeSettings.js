@@ -15,6 +15,7 @@ const {
 	StoreManagementById,
 	list,
 	listOfStores,
+	storesBelongsTo,
 } = require("../controllers/storeSettings");
 
 router.post(
@@ -33,6 +34,7 @@ router.get(
 	isBoss,
 	listOfStores
 );
+router.get("/store-belongs-to/:id", storesBelongsTo);
 
 router.param("userId", userById);
 router.param("serviceId", StoreManagementById);

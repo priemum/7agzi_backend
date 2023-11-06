@@ -103,3 +103,34 @@ exports.listOfStores = async (req, res) => {
 		return res.status(500).json({ error: err });
 	}
 };
+
+exports.storesBelongsTo = async (req, res) => {
+	try {
+		const ids = req.params.id.split(","); // Assuming IDs are sent as a comma-separated string
+
+		// Aggregation pipeline to get the latest storeSetting for each belongsTo ID
+		const storeSettings = await StoreSettings.aggregate([
+			{
+				$match: {
+					belongsTo: { $in: ids.map((id) => mongoose.Types.ObjectId(id)) }, // Convert string IDs to ObjectIds
+				},
+			},
+			{
+				$sort: { createdAt: -1 },
+			},
+			{
+				$group: {
+					_id: "$belongsTo",
+					latestStoreSetting: { $first: "$$ROOT" },
+				},
+			},
+			{
+				$replaceRoot: { newRoot: "$latestStoreSetting" }, // Replace the root with the latest storeSetting
+			},
+		]);
+
+		res.json(storeSettings);
+	} catch (err) {
+		return res.status(500).json({ error: err.message });
+	}
+};

@@ -474,6 +474,10 @@ exports.paginatedProducts = async (req, res) => {
 				"category",
 				"categoryName categoryName_Arabic categorySlug categorySlug_Arabic"
 			)
+			.populate(
+				"relatedProducts",
+				"_id productName productName_Arabic productSKU slug slug_Arabic price priceAfterDiscount quantity images activeProduct category subcategory"
+			)
 			.skip(skip)
 			.limit(limit)
 			.exec();
