@@ -292,23 +292,32 @@ exports.listFrontendByLocation = async (req, res) => {
 		stores = await Promise.all(
 			stores.map(async (store) => {
 				try {
+					if (!store.belongsTo || !store.belongsTo.storeCountry) {
+						// Log for debugging purposes
+
+						return null; // Skip this store
+					}
+
 					const storeLocation = {
 						latitude: parseFloat(store.latitude),
 						longitude: parseFloat(store.longitude),
 					};
 					const distance = geolib.getDistance(userLocation, storeLocation);
 
+					// Rest of your code for processing the store
 					return {
 						...store,
 						distance,
 					};
 				} catch (error) {
-					// Handle the error if needed
+					console.error("Error processing store:", error);
+					return null; // Skip this store on error
 				}
 			})
 		);
 
 		stores = stores.filter((store) => store !== undefined);
+		stores = stores.filter((store) => store !== null);
 		stores.sort((a, b) => a.distance - b.distance);
 
 		// Calculate travel times for the first 4 stores only
@@ -501,22 +510,34 @@ exports.listFrontendByLocation2 = async (req, res) => {
 		stores = await Promise.all(
 			stores.map(async (store) => {
 				try {
+					if (!store.belongsTo || !store.belongsTo.storeCountry) {
+						// Log for debugging purposes
+						// console.log(
+						// 	"Skipping store due to missing belongsTo or storeCountry",
+						// 	store
+						// );
+						return null; // Skip this store
+					}
+
 					const storeLocation = {
 						latitude: parseFloat(store.latitude),
 						longitude: parseFloat(store.longitude),
 					};
 					const distance = geolib.getDistance(userLocation, storeLocation);
 
+					// Rest of your code for processing the store
 					return {
 						...store,
 						distance,
 					};
 				} catch (error) {
-					// Handle the error if needed
+					console.error("Error processing store:", error);
+					return null; // Skip this store on error
 				}
 			})
 		);
 
+		stores = stores.filter((store) => store !== null); // Exclude null entries
 		stores = stores.filter((store) => store !== undefined);
 		stores.sort((a, b) => a.distance - b.distance);
 
@@ -720,23 +741,32 @@ exports.listOfStoresGradeA = async (req, res) => {
 		stores = await Promise.all(
 			stores.map(async (store) => {
 				try {
+					if (!store.belongsTo || !store.belongsTo.storeCountry) {
+						// Log for debugging purposes
+
+						return null; // Skip this store
+					}
+
 					const storeLocation = {
 						latitude: parseFloat(store.latitude),
 						longitude: parseFloat(store.longitude),
 					};
 					const distance = geolib.getDistance(userLocation, storeLocation);
 
+					// Rest of your code for processing the store
 					return {
 						...store,
 						distance,
 					};
 				} catch (error) {
-					// Handle the error if needed
+					console.error("Error processing store:", error);
+					return null; // Skip this store on error
 				}
 			})
 		);
 
 		stores = stores.filter((store) => store !== undefined);
+		stores = stores.filter((store) => store !== null);
 		stores.sort((a, b) => a.distance - b.distance);
 
 		// Calculate travel times for the first 4 stores only
