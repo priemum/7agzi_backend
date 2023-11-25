@@ -63,7 +63,7 @@ router.put("/viewscounter", viewsCounter);
 router.put("/product/star/:productId/:userId", requireSignin, productStar);
 
 router.get(
-	"/all-products/:categories/:subcategories/:gender/:size/:pagination/:page",
+	"/all-products/:categories/:subcategories/:gender/:size/:storeCountry/:pagination/:page",
 	paginatedProducts
 );
 

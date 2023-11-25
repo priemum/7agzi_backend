@@ -421,6 +421,7 @@ exports.paginatedProducts = async (req, res) => {
 		subcategories,
 		gender,
 		size,
+		storeCountry,
 		pagination = 20,
 		page = 1,
 	} = req.params;
@@ -467,20 +468,36 @@ exports.paginatedProducts = async (req, res) => {
 	const limit = parseInt(pagination);
 	const skip = (parseInt(page) - 1) * limit;
 
+	// console.log(filterConditions, "filterConditions");
+
 	try {
-		const products = await Product.find(filterConditions)
-			// .select("productName price image")
-			.populate(
-				"category",
-				"categoryName categoryName_Arabic categorySlug categorySlug_Arabic"
-			)
-			.populate(
-				"relatedProducts",
-				"_id productName productName_Arabic productSKU slug slug_Arabic price priceAfterDiscount quantity images activeProduct category subcategory"
-			)
-			.skip(skip)
-			.limit(limit)
-			.exec();
+		let aggregationPipeline = [
+			{ $match: filterConditions },
+			{
+				$lookup: {
+					from: "users",
+					localField: "belongsTo",
+					foreignField: "_id",
+					as: "belongsTo",
+				},
+			},
+			{ $unwind: "$belongsTo" },
+		];
+
+		// Adding storeCountry filter after lookup if provided
+		if (storeCountry && storeCountry !== "undefined") {
+			aggregationPipeline.push({
+				$match: { "belongsTo.storeCountry": storeCountry },
+			});
+		}
+
+		aggregationPipeline.push(
+			{ $skip: skip },
+			{ $limit: limit }
+			// Add additional lookups or projections as needed
+		);
+
+		const products = await Product.aggregate(aggregationPipeline);
 
 		const totalProducts = await Product.countDocuments(filterConditions);
 

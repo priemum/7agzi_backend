@@ -27,7 +27,7 @@ const contactusPageLink = "http://xlookpro.com/contact";
 const supportEmail = "info@xlookpro.com";
 const fromEmail = "noreply@infinite-apps.com";
 const defaultEmail = "ahmed.abdelrazak@infinite-apps.com";
-const phoneNumber1 = "01097542859";
+const phoneNumber1 = "9099914386";
 const phoneNumber2 = "(999) 222-3322";
 const shopAddress = "123 main street, LA, CA";
 const shopLogo =
@@ -49,93 +49,196 @@ exports.scheduleOrderById = (req, res, next, id) => {
 };
 
 exports.create = (req, res) => {
-	console.log("CREATE ORDER: ", req.body.order);
-	req.body.order.user = req.profile;
-	const order = new ScheduleOrder(req.body.order);
-	const smsData = {
-		user: order.user._id,
-		phone: `+2${order.phone}`,
-		text: `Hi ${
-			order.scheduledByUserName
-		} - \nYour appointment was scheduled at (${
-			order.scheduledTime
-		}) on ${new Date(
-			order.scheduledDate
-		).toLocaleDateString()}. Please check your dashboard ${userDashboardLink} or call us 9099914386 in case you would like to make any changes. Thank you for choosing ${BarbershopName}`,
-		belongsTo: order.belongsTo,
-	};
-	order.save((error, data) => {
-		if (error) {
-			console.log(error, "error");
-			return res.status(400).json({
-				error: "Error Creating an order",
-			});
-		}
+	// console.log("CREATE ORDER: ", req.body);
 
-		const sms = new SMS(smsData);
-		sms.save((err, data) => {
-			if (err) {
+	if (req.body.order.country === "egypt") {
+		req.body.order.user = req.profile;
+		const order = new ScheduleOrder(req.body.order);
+		const smsData = {
+			user: order.user._id,
+			phone: `+2${order.phone}`,
+			text: `Hi ${
+				order.scheduledByUserName
+			} - \nYour appointment was scheduled at (${
+				order.scheduledTime
+			}) on ${new Date(
+				order.scheduledDate
+			).toLocaleDateString()}. Please check your dashboard ${userDashboardLink} or call us 9099914386 in case you would like to make any changes. Thank you for choosing ${BarbershopName}`,
+			belongsTo: order.belongsTo,
+		};
+		order.save((error, data) => {
+			if (error) {
+				console.log(error, "error");
 				return res.status(400).json({
-					err: "Error in sms creation",
+					error: "Error Creating an order",
 				});
 			}
-			// console.log(data, "sms saved in the data base");
+
+			const sms = new SMS(smsData);
+			sms.save((err, data) => {
+				if (err) {
+					return res.status(400).json({
+						err: "Error in sms creation",
+					});
+				}
+				// console.log(data, "sms saved in the data base");
+			});
+
+			//Sending Message
+			// orderStatusSMS.messages
+			// 	.create({
+			// 		body: smsData.text,
+			// 		from: "+18038100432",
+			// 		to: smsData.phone,
+			// 	})
+			// 	.then((message) =>
+			// 		console.log(`Your message was successfully sent to ${smsData.phone}`)
+			// 	)
+			// 	.catch((err) => console.log(err));
+			//End of Sendting Message
+
+			//
+			//
+			//Whats App Message
+			var fullNameArray = order.scheduledByUserName.split(" ");
+			var firstName = fullNameArray[0].trim();
+			orderStatusSMS.messages
+				.create({
+					from: "whatsapp:+201097542859",
+					body: `Hi ${firstName} - Your appointment was scheduled at (${
+						order.scheduledTime
+					}) on ${new Date(
+						order.scheduledDate
+					).toLocaleDateString()}. Please check your dashboard or call us at +201097542859 in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
+					template: "appointment_confirmation",
+					appointment_confirmation: {
+						1: order.firstName,
+						2: order.scheduledTime,
+						3: new Date(order.scheduledDate).toLocaleDateString(),
+						4: "+201097542859",
+						5: BarbershopName,
+					},
+					to: `whatsapp:${smsData.phone}`,
+				})
+				.then((message) =>
+					console.log(`Your message was successfully sent to ${order.phone}`)
+				)
+				.catch((err) => console.log(err));
+
+			//End of Whats App Message
+			//
+			//
+
+			// send email alert to admin
+			// order.address
+			// order.products.length
+			// order.amount
+			// console.log(order.user.email, "User Email");
+			// console.log(order.user.email.includes("@"), "Ahowan");
+
+			res.json(data);
 		});
+	} else {
+		req.body.order.user = req.profile;
+		const order = new ScheduleOrder(req.body.order);
+		console.log(req.body.order.country, "country");
+		const smsData = {
+			user: order.user._id,
+			phone: `+1${order.phone}`,
+			text: `Hi ${
+				order.scheduledByUserName
+			} - \nYour appointment was scheduled at (${
+				order.scheduledTime
+			}) on ${new Date(
+				order.scheduledDate
+			).toLocaleDateString()}. \nThank you for choosing ${BarbershopName}`,
+		};
+		order.save((error, data) => {
+			if (error) {
+				return res.status(400).json({
+					error: "Error Creating an order",
+				});
+			}
 
-		//Sending Message
-		// orderStatusSMS.messages
-		// 	.create({
-		// 		body: smsData.text,
-		// 		from: "+18038100432",
-		// 		to: smsData.phone,
-		// 	})
-		// 	.then((message) =>
-		// 		console.log(`Your message was successfully sent to ${smsData.phone}`)
-		// 	)
-		// 	.catch((err) => console.log(err));
-		//End of Sendting Message
+			const sms = new SMS(smsData);
+			sms.save((err, data) => {
+				if (err) {
+					return res.status(400).json({
+						err: "Error in sms creation",
+					});
+				}
+				console.log(data, "sms saved in the data base");
+			});
 
-		//
-		//
-		//Whats App Message
-		var fullNameArray = order.scheduledByUserName.split(" ");
-		var firstName = fullNameArray[0].trim();
-		orderStatusSMS.messages
-			.create({
-				from: "whatsapp:+201097542859",
-				body: `Hi ${firstName} - Your appointment was scheduled at (${
-					order.scheduledTime
-				}) on ${new Date(
-					order.scheduledDate
-				).toLocaleDateString()}. Please check your dashboard or call us at +201097542859 in case you would like to make any changes. Thank you for choosing ${BarbershopName}.`,
-				template: "appointment_confirmation",
-				appointment_confirmation: {
-					1: order.firstName,
-					2: order.scheduledTime,
-					3: new Date(order.scheduledDate).toLocaleDateString(),
-					4: "+201097542859",
-					5: BarbershopName,
-				},
-				to: `whatsapp:${smsData.phone}`,
-			})
-			.then((message) =>
-				console.log(`Your message was successfully sent to ${order.phone}`)
-			)
-			.catch((err) => console.log(err));
+			orderStatusSMS.messages
+				.create({
+					body: smsData.text,
+					from: "+19094884148",
+					to: smsData.phone,
+				})
+				.then((message) =>
+					console.log(`Your message was successfully sent to ${smsData.phone}`)
+				)
+				.catch((err) => console.log(err));
 
-		//End of Whats App Message
-		//
-		//
+			// send email alert to admin
+			// order.address
+			// order.products.length
+			// order.amount
+			// console.log(order.user.email, "User Email");
+			// console.log(order.user.email.includes("@"), "Ahowan");
 
-		// send email alert to admin
-		// order.address
-		// order.products.length
-		// order.amount
-		// console.log(order.user.email, "User Email");
-		// console.log(order.user.email.includes("@"), "Ahowan");
+			res.json(data);
 
-		res.json(data);
-	});
+			if (order.user.email.includes("@")) {
+				const emailData2 = {
+					to: order.user.email,
+					from: `${fromEmail}`,
+					subject: `Appointment Confirmation`,
+					html: `
+				<html>
+    <head>
+      <title></title>
+					
+    </head>
+    <body style=margin-left:20px;margin-right:20px;margin-top:50px;background:#f2f2f2;border-radius:20px;padding:50px;>
+     <div >
+					  <div >Hi ${order.scheduledByUserName},</div>
+					   <br />
+					   <div>Thank you for choosing <a href=${BarbershopWebsite}> ${BarbershopName}</a>.</div>
+					   <h3>
+						Scheduleing Details:
+					   </h3>
+						<strong>Chosen Service:</strong> ${order.service} <br />
+						<strong>Appointment Date:</strong> ${order.scheduledDate}<br />
+						<strong>Appointment Time:</strong> ${order.scheduledTime}<br />
+						<br />
+						<h3>Amount: $${order.amount}</h3>
+						<p>Please <a href=${BarbershopWebsite}>login to your dashboard</a> to download your invoice or to re-schedule if needed.</p>
+						 <br />
+	
+						 Kind and Best Regards,  <br />
+						 ${BarbershopName} support team <br />
+						 Contact Email: ${supportEmail} <br />
+						 Phone#: ${phoneNumber1} <br />
+						 Landline#: ${phoneNumber2} <br />
+						 Address:  ${shopAddress}  <br />
+						 &nbsp;&nbsp; <img src=${shopLogo} alt=${BarbershopName} style="height:100px;width:100px;"  />
+						 <br />
+						 <p>
+						 <strong>${BarbershopName}</strong>
+						  </p>
+						  </div>
+    </body>
+  </html>
+						`,
+				};
+				sgMail.send(emailData2);
+			} else {
+				console.log("No Email Was included");
+			}
+		});
+	}
 };
 
 exports.listScheduledOrders = (req, res) => {
@@ -1363,7 +1466,7 @@ exports.employeeFreeSlots = async (req, res) => {
 		const employeeId = req.params.employeeId;
 		const date = new Date(req.params.date);
 
-		console.log(req.params.date, "req.params.date");
+		// console.log(req.params.date, "req.params.date");
 
 		const dayOfWeek = [
 			"Sunday",

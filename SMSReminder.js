@@ -71,7 +71,7 @@ exports.scheduler = (req, res) => {
 							}
 							const smsData = {
 								user: i.user._id,
-								phone: `+2${i.phone}`,
+								phone: `+1${i.phone}`,
 								text: `Hi ${i.scheduledByUserName} - \n This is a friendly reminder... \n Your appointment with ${i.employees[0].employeeName} is today at ${i.scheduledTime}, Please check your dashboard ${userDashboardLink} in case you would like to make any changes. \n Thank you for choosing ${BarbershopName}.`,
 								belongsTo: i.belongsTo,
 							};
