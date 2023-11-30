@@ -1198,3 +1198,32 @@ exports.removeUser = (req, res) => {
 		});
 	});
 };
+
+exports.userByCreatedAtDate = async (req, res) => {
+	try {
+		const userCounts = await User.aggregate([
+			// Filter to include only users with role 0
+			{ $match: { role: 0 } },
+
+			// Group by the createdAt date (date only, without time)
+			{
+				$group: {
+					_id: {
+						year: { $year: "$createdAt" },
+						month: { $month: "$createdAt" },
+						day: { $dayOfMonth: "$createdAt" },
+					},
+					count: { $sum: 1 },
+				},
+			},
+
+			// Optionally sort the results by date
+			{ $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } },
+		]);
+
+		res.json(userCounts);
+	} catch (err) {
+		console.error("Error in userByCreatedAtDate:", err);
+		res.status(500).send("Internal Server Error");
+	}
+};

@@ -252,7 +252,8 @@ const calculateTravelTimes = async (userLocation, storeLocation) => {
 
 const createFilter = (params) => {
 	const filter = {};
-	if (params.country !== "undefined") filter.storeCountry = params.country;
+	if (params.country !== "undefined" && params.country !== "united states")
+		filter.storeCountry = params.country;
 	if (params.governorate !== "undefined")
 		filter.storeGovernorate = params.governorate;
 	if (params.district !== "undefined") filter.storeDistrict = params.district;
