@@ -38,6 +38,7 @@ const {
 	likeProduct,
 	unlikeProduct,
 	userByCreatedAtDate,
+	userBookings,
 } = require("../controllers/user");
 
 router.get("/secret/:userId", requireSignin, isAuth, isAdmin, (req, res) => {
@@ -132,6 +133,11 @@ router.get(
 );
 
 router.get("/boss/get-all-users/:userId", isBoss, userByCreatedAtDate);
+router.get(
+	"/boss/get-all-users-bookings/:userId/:pagination/:page",
+	isBoss,
+	userBookings
+);
 
 router.delete("/delete-user/:userId", requireSignin, isAuth, removeUser);
 

@@ -6,6 +6,7 @@ const StoreManagement = require("../models/storeManagement");
 const Services = require("../models/services");
 const Employee = require("../models/employee");
 const Gallary = require("../models/gallary");
+const mongoose = require("mongoose");
 
 exports.userById = (req, res, next, id) => {
 	User.findById(id)
@@ -1225,5 +1226,71 @@ exports.userByCreatedAtDate = async (req, res) => {
 	} catch (err) {
 		console.error("Error in userByCreatedAtDate:", err);
 		res.status(500).send("Internal Server Error");
+	}
+};
+
+exports.userBookings = async (req, res) => {
+	try {
+		const pagination = parseInt(req.params.pagination) || 50; // Number of records per page
+		const page = parseInt(req.params.page) || 1; // Current page number
+
+		// Calculate the number of records to skip
+		const skip = (page - 1) * pagination;
+
+		// Fetch users with role 0, with pagination
+		const users = await User.find({ role: 0 })
+			.select("name email phone createdAt")
+			.sort({ createdAt: -1 })
+			.skip(skip)
+			.limit(pagination);
+
+		let combinedUsers = [];
+
+		for (let user of users) {
+			const bookings = await ScheduleOrder.find({
+				user: mongoose.Types.ObjectId(user._id),
+			})
+				.populate("belongsTo", "storeName storeCountry storeGovernorate")
+				.select("scheduledDate scheduledTime status belongsTo createdAt");
+
+			if (bookings.length > 0) {
+				combinedUsers.push(
+					...bookings.map((booking) => ({
+						name: user.name,
+						email: user.email,
+						phone: user.phone,
+						createdAt: user.createdAt,
+						scheduledDate: booking.scheduledDate,
+						scheduledTime: booking.scheduledTime,
+						status: booking.status,
+						storeName: booking.belongsTo.storeName,
+						storeCountry: booking.belongsTo.storeCountry,
+						storeGovernorate: booking.belongsTo.storeGovernorate,
+					}))
+				);
+			} else {
+				combinedUsers.push({
+					name: user.name,
+					email: user.email,
+					phone: user.phone,
+					createdAt: user.createdAt,
+					scheduledDate: "",
+					scheduledTime: "",
+					status: "",
+					storeName: "",
+					storeCountry: "",
+					storeGovernorate: "",
+				});
+			}
+		}
+
+		// No need to separately sort usersWithBookings and usersWithoutBookings
+		// as they are already sorted by createdAt due to the User.find() sort
+		res.json(combinedUsers);
+	} catch (error) {
+		console.error(error);
+		res
+			.status(500)
+			.send({ message: "Error retrieving user bookings", error: error });
 	}
 };
