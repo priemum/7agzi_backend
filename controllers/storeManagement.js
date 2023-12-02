@@ -617,25 +617,34 @@ exports.listFrontendByLocation2 = async (req, res) => {
 exports.searchStore = async (req, res) => {
 	const keyword = req.params.keyword;
 
-	console.log(keyword, "keyword");
-
 	try {
-		const query = {
+		// Modify the regular expressions to match partial words
+		const regexPattern = new RegExp(keyword, "i"); // Case-insensitive partial match
+
+		// Search for services that match the keyword (partially and case-insensitively)
+		const matchingServices = await Services.find({
 			$or: [
-				{ addStoreName: { $regex: keyword, $options: "i" } }, // Case-insensitive partial matching
-				{ addStoreNameArabic: { $regex: keyword, $options: "i" } },
-				{ storeGovernorate: { $regex: keyword, $options: "i" } },
-				{ storeDistrict: { $regex: keyword, $options: "i" } },
+				{ serviceName: { $regex: regexPattern } },
+				{ serviceNameOtherLanguage: { $regex: regexPattern } },
 			],
+		}).distinct("belongsTo");
+
+		// Search query for stores with updated regex
+		const storeQuery = {
+			$or: [
+				{ addStoreName: { $regex: regexPattern } },
+				{ addStoreNameArabic: { $regex: regexPattern } },
+				{ storeGovernorate: { $regex: regexPattern } },
+				{ storeDistrict: { $regex: regexPattern } },
+				{ belongsTo: { $in: matchingServices } }, // Include stores linked to matching services
+			],
+			activeStore: true, // Only consider active stores
 		};
 
+		// Aggregate query to fetch stores
 		const stores = await StoreManagement.aggregate([
-			{
-				$match: query,
-			},
-			{
-				$sort: { createdAt: -1 }, // Sort by createdAt in descending order (newest first)
-			},
+			{ $match: storeQuery },
+			{ $sort: { createdAt: -1 } },
 			{
 				$lookup: {
 					from: "users",
@@ -644,15 +653,8 @@ exports.searchStore = async (req, res) => {
 					as: "belongsTo",
 				},
 			},
-			{
-				$unwind: "$belongsTo",
-			},
-			{
-				$replaceRoot: { newRoot: "$$ROOT" }, // Keep the root document
-			},
-			{
-				$match: { activeStore: true }, // Only consider active stores
-			},
+			{ $unwind: "$belongsTo" },
+			{ $replaceRoot: { newRoot: "$$ROOT" } },
 			{
 				$project: {
 					_id: 1,

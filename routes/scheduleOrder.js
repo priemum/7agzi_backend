@@ -49,6 +49,7 @@ const {
 	storeNameStats,
 	listFutureBookings,
 	bookingSummary,
+	listOfAppointmentsAdmin,
 } = require("../controllers/scheduleOrder");
 // const { decreaseQuantity } = require("../controllers/employee");
 
@@ -278,6 +279,14 @@ router.get(
 	isAuth,
 	isBoss,
 	bookingSummary
+);
+
+router.get(
+	"/boss-appointments/:userId/:days",
+	requireSignin,
+	isAuth,
+	isBoss,
+	listOfAppointmentsAdmin
 );
 
 router.get("/future-bookings/:ownerId", listFutureBookings);

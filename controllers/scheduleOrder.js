@@ -1998,3 +1998,50 @@ exports.bookingSummary = async (req, res) => {
 		return res.status(500).json({ error: "Something went wrong" });
 	}
 };
+
+exports.listOfAppointmentsAdmin = (req, res) => {
+	const days = parseInt(req.params.days); // Retrieve days from request
+	const dateAgo = new Date();
+	dateAgo.setDate(dateAgo.getDate() - days); // Use days to calculate the date
+
+	ScheduleOrder.find({
+		createdAt: { $gte: dateAgo },
+		BookedFrom: "Online",
+	})
+		.populate("user", "_id name email phone service scheduledTime")
+		.populate(
+			"belongsTo",
+			"_id name email storeName createdAt storeGovernorate phone"
+		)
+		.sort("-createdAt")
+		.exec((err, orders) => {
+			if (err) {
+				return res.status(400).json({
+					error: "Error to retrieve all orders",
+				});
+			}
+
+			// console.log(ordersModified.length, "ordersModified");
+			// console.log(orders.length, "ordersModified");
+			res.json(
+				orders.map((i) => {
+					return {
+						employeeId: i.employees[0]._id,
+						employeeName: i.employees[0].employeeName,
+						scheduledTime: i.scheduledTime,
+						scheduledDate: i.scheduledDate,
+						scheduledByUserName: i.scheduledByUserName,
+						serviceDuration: i.serviceDuration,
+						status: i.status,
+						createdAt: i.createdAt,
+						belongsTo: i.belongsTo,
+						phone: i.phone,
+						user: i.user,
+						appliedCouponData: i.appliedCouponData,
+						amount: i.amount,
+						BookedFrom: i.BookedFrom,
+					};
+				})
+			);
+		});
+};
