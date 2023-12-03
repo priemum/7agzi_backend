@@ -252,8 +252,7 @@ const calculateTravelTimes = async (userLocation, storeLocation) => {
 
 const createFilter = (params) => {
 	const filter = {};
-	if (params.country !== "undefined" && params.country !== "united states")
-		filter.storeCountry = params.country;
+	// if (params.country !== "undefined") filter.storeCountry = params.country;
 	if (params.governorate !== "undefined")
 		filter.storeGovernorate = params.governorate;
 	if (params.district !== "undefined") filter.storeDistrict = params.district;
@@ -396,8 +395,8 @@ exports.listFrontendByLocation = async (req, res) => {
 const createAggregateFilter = (params) => {
 	let filter = { activeStore: true }; // Default filter for active stores
 
-	if (params.country && params.country !== "undefined")
-		filter["user.storeCountry"] = params.country;
+	// if (params.country && params.country !== "undefined")
+	// 	filter["user.storeCountry"] = params.country;
 	if (params.governorate && params.governorate !== "undefined")
 		filter["user.storeGovernorate"] = params.governorate;
 	if (params.district && params.district !== "undefined")

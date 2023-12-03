@@ -485,11 +485,11 @@ exports.paginatedProducts = async (req, res) => {
 		];
 
 		// Adding storeCountry filter after lookup if provided
-		if (storeCountry && storeCountry !== "undefined") {
-			aggregationPipeline.push({
-				$match: { "belongsTo.storeCountry": storeCountry },
-			});
-		}
+		// if (storeCountry && storeCountry !== "undefined") {
+		// 	aggregationPipeline.push({
+		// 		$match: { "belongsTo.storeCountry": storeCountry },
+		// 	});
+		// }
 
 		aggregationPipeline.push(
 			{ $skip: skip },

@@ -23,12 +23,6 @@ router.get("/generate-sitemap", async (req, res) => {
 	const staticLinks = [
 		{ url: "/", lastmod: currentDate, changefreq: "weekly", priority: 0.8 },
 		{
-			url: "/home",
-			lastmod: currentDate,
-			changefreq: "weekly",
-			priority: 1,
-		},
-		{
 			url: "/schedule",
 			lastmod: currentDate,
 			changefreq: "weekly",
