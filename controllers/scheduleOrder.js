@@ -2006,7 +2006,7 @@ exports.listOfAppointmentsAdmin = (req, res) => {
 
 	ScheduleOrder.find({
 		createdAt: { $gte: dateAgo },
-		BookedFrom: "Online",
+		BookedFrom: { $regex: "online", $options: "i" }, // Case-insensitive search for 'online'
 	})
 		.populate("user", "_id name email phone service scheduledTime")
 		.populate(
