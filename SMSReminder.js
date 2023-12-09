@@ -114,7 +114,11 @@ const contactusPageLink = "https://xlookpro.com/contact";
 
 exports.scheduler = (req, res) => {
 	ScheduleOrder.find()
-		.populate("user", "_id name email service scheduledTime")
+		.populate({
+			path: "belongsTo",
+			select: "storeCountry", // Select only the storeCountry field
+		})
+		.populate("user", "_id name email service scheduledTime") // existing population for user
 		.exec((err, orders) => {
 			if (err) {
 				return res.status(400).json({
@@ -124,12 +128,10 @@ exports.scheduler = (req, res) => {
 
 			var d = new Date();
 			var hoursNow = d.getHours();
-			// var todaysDay = d.getDate();
-			// var todaysMonth = d.getMonth() + 1;
-			// var todaysMinutes = d.getMinutes();
 
 			var ordersModified = orders.filter(
 				(i) =>
+					i.belongsTo.storeCountry.toLowerCase() === "united states" && // Check if storeCountry is United States
 					new Date(i.scheduledDate).setHours(0, 0, 0, 0) ===
 						new Date().setHours(0, 0, 0, 0) &&
 					i.reminderTextSend === false &&
@@ -164,14 +166,14 @@ exports.scheduler = (req, res) => {
 							sms.save((err, data) => {
 								if (err) {
 									return res.status(400).json({
-										err: "Error in sms creation",
+										error: "Error in sms creation",
 									});
 								}
 							});
 							orderStatusSMS.messages
 								.create({
 									body: smsData.text,
-									from: "+18038100432",
+									from: "+19094884148",
 									to: smsData.phone,
 								})
 								.then((message) =>
