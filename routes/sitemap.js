@@ -106,6 +106,18 @@ router.get("/generate-sitemap", async (req, res) => {
 			changefreq: "monthly",
 			priority: 0.5,
 		},
+		{
+			url: "/schedule/offers",
+			lastmod: currentDate,
+			changefreq: "monthly",
+			priority: 0.5,
+		},
+		{
+			url: "/schedule/50-EGP-Offer",
+			lastmod: currentDate,
+			changefreq: "monthly",
+			priority: 0.5,
+		},
 		// Add the rest of your static links here
 	];
 
