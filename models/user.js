@@ -168,6 +168,10 @@ const userSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
+		affiliateUser: {
+			type: String,
+			default: "",
+		},
 	},
 	{ timestamps: true }
 );
