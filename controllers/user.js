@@ -947,7 +947,6 @@ exports.reportSummary = async (req, res) => {
 			{ $group: { _id: "$belongsTo" } },
 		]);
 
-		// Get the most recent settings for each user and check if they're active
 		const recentSettingsForOwners = await StoreManagement.aggregate([
 			{ $sort: { createdAt: -1 } },
 			{ $group: { _id: "$belongsTo", recentSetting: { $first: "$$ROOT" } } },
@@ -958,6 +957,18 @@ exports.reportSummary = async (req, res) => {
 		).length;
 		const notActiveStores = registeredStores - activeStores;
 
+		const affiliatedAccounts = await User.aggregate([
+			{
+				$match: {
+					$and: [
+						{ affiliateUser: { $ne: null } },
+						{ affiliateUser: { $ne: "" } },
+					],
+				},
+			},
+			{ $count: "affiliated" },
+		]);
+
 		const result = {
 			registeredStores,
 			addedSettings: addedSettingsOwners.length,
@@ -966,6 +977,8 @@ exports.reportSummary = async (req, res) => {
 			addedGallary: addedGallaryOwners.length,
 			activeStores,
 			notActiveStores,
+			affiliatedAccounts:
+				affiliatedAccounts.length > 0 ? affiliatedAccounts[0].affiliated : 0,
 		};
 
 		res.json(result);
