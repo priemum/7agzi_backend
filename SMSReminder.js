@@ -7,7 +7,7 @@ const orderStatusSMS = require("twilio")(
 	process.env.TWILIO_ACCOUNT_SID,
 	process.env.TWILIO_AUTH_TOKEN
 );
-const SMS = require("./models/sms");
+const SMS = require("./models/sms");          
 
 const BarbershopName = "XLOOK";
 const BarbershopWebsite = "https://xlookpro.com";
